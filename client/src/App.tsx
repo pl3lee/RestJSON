@@ -8,11 +8,12 @@ import { fetchHello } from './lib/api'
 function App() {
     const queryClient = useQueryClient()
 
+
     const { data: helloData, isLoading: helloLoading } = useQuery({ queryKey: ['hello'], queryFn: fetchHello })
 
     return (
         <div className="text-red-500">
-            {helloLoading? "Loading..." : helloData}
+            {helloLoading ? "Loading..." : helloData}
         </div>
     )
 }
