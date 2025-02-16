@@ -1,6 +1,6 @@
 export const fetchHello = async () => {
     try {
-        const res = await fetch("http://localhost:3000", {
+        const res = await fetch(import.meta.env.VITE_BACKEND_URL, {
             credentials: "include"
         })
         if (!res.ok) {
