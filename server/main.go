@@ -46,7 +46,7 @@ func main() {
 	}))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		utils.RespondWithJSON(w, http.StatusOK, "Hello")
+		utils.RespondWithJSON(w, http.StatusOK, "Hello world!")
 	})
 
 	log.Printf("Listening on port %v", cfg.Port)
