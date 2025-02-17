@@ -63,7 +63,7 @@ jobs:
 
       - name: SSH and pull
         run: |
-          ssh -o StrictHostKeyChecking=no billy@{{ secrets.DROPLET_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no billy@${{ secrets.DROPLET_IP }} << 'EOF'
             cd /home/billy/webjson
             echo SHA=${{ github.sha }} > .env
             docker compose pull
