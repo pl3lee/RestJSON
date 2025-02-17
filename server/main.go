@@ -17,12 +17,8 @@ import (
 
 func main() {
 	// env variables
-	if os.Getenv("GO_ENV") != "production" {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatalf("Cannot load env variables: %s", err)
-		}
-
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Cannot read .env file, this is normal when running in a docker container: %v\n", err)
 	}
 	port := os.Getenv("PORT")
 	clientURL := os.Getenv("CLIENT_URL")
@@ -32,7 +28,7 @@ func main() {
 		ClientURL: clientURL,
 	}
 
-	fmt.Printf("CLIENT_URL: %v", cfg.ClientURL)
+	log.Printf("CLIENT_URL is set to %v\n", cfg.ClientURL)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -56,7 +52,7 @@ func main() {
 	log.Printf("Listening on port %v", cfg.Port)
 	err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
 	if err != nil {
-		log.Fatal("error starting server at port 3000")
+		log.Fatalf("error starting server at port %v", cfg.Port)
 	}
 
 }

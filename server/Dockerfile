@@ -1,7 +1,8 @@
-FROM --platform=linux/amd64 debian:stable-slim
+FROM golang:1.24-bookworm AS builder
+WORKDIR /app
+COPY . .
+RUN ./scripts/buildprod.sh
 
-RUN apt-get update && apt-get install -y ca-certificates
-
-ADD webjson-server /usr/bin/webjson-server
-
+FROM debian:stable-slim AS runner
+COPY --from=builder /app/webjson-server /usr/bin/webjson-server
 CMD ["webjson-server"]
