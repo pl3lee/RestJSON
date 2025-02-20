@@ -6,15 +6,15 @@ services:
     ports:
       - '3000:3000'
 
-  frontend-api:
-    image: pl3lee/webjson-frontend-api:${SHA}
-    container_name: webjson-frontend-api
+  api:
+    image: pl3lee/webjson-api:${SHA}
+    container_name: webjson-api
     restart: unless-stopped
 
     ports:
       - '3001:3001'
     env_file:
-      - .env.frontend.api
+      - .env.api
 
   db:
     image: postgres:15
