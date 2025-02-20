@@ -46,40 +46,40 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
 
-	corsWeb := cors.New(cors.Options{
+	corsWeb := cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.ClientURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})
-	corsPublic := cors.New(cors.Options{
+	corsPublic := cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	})
-	r.Route("/web", func(r chi.Router) {
-		r.Use(corsWeb.Handler)
-		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		})
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			utils.RespondWithJSON(w, http.StatusOK, "Hello world from web router!")
+	r.Group(func(r chi.Router) {
+		r.Use(corsWeb)
+		r.Route("/web", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				utils.RespondWithJSON(w, http.StatusOK, "Hello world from web router!")
+			})
 		})
 	})
-
-	r.Route("/public", func(r chi.Router) {
-		r.Use(corsPublic.Handler)
-		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
+	r.Group(func(r chi.Router) {
+		r.Use(corsPublic)
+		r.Route("/public", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				utils.RespondWithJSON(w, http.StatusOK, "Hello world from public router!")
+			})
 		})
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			utils.RespondWithJSON(w, http.StatusOK, "Hello world from public router!")
-		})
-
 	})
 
 	log.Printf("Listening on port %v", cfg.Port)
