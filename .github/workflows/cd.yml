@@ -28,8 +28,8 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/webjson-frontend:${{ github.sha }}
 
-  build_frontend_api:
-    name: Build frontend-api
+  build_api:
+    name: Build api
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -47,13 +47,13 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend-api
+          context: ./api
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-frontend-api:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-api:${{ github.sha }}
 
-  deploy:
-    name: Deploy
-    needs: [build_frontend, build_frontend_api]
+  deploy_staging:
+    name: Deploy to staging server
+    needs: [build_frontend, build_api]
     runs-on: ubuntu-latest
     steps:
       - name: Install SSH key
