@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+COPY .env.staging .env
 RUN npm run build
 
 FROM node:23-alpine AS runner
