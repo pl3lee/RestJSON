@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  tests_server:
-    name: Tests server
+  tests_frontend_api:
+    name: Tests frontend-api
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -22,15 +22,15 @@ jobs:
 
       - name: Run tests
         run: go test -cover ./...
-        working-directory: ./server
+        working-directory: ./frontend-api
 
       - name: Security check
         run: gosec ./...
-        working-directory: ./server
+        working-directory: ./frontend-api
 
 
-  style_server:
-    name: Style server
+  style_frontend_api:
+    name: Style frontend-api
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -46,8 +46,8 @@ jobs:
 
       - name: Style
         run: test -z $(go fmt ./...)
-        working-directory: ./server
+        working-directory: ./frontend-api
 
       - name: Lint
         run: staticcheck ./...
-        working-directory: ./server
+        working-directory: ./frontend-api

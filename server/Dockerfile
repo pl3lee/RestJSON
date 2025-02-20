@@ -1,8 +1,0 @@
-FROM golang:1.24-bookworm AS builder
-WORKDIR /app
-COPY . .
-RUN ./scripts/buildprod.sh
-
-FROM debian:stable-slim AS runner
-COPY --from=builder /app/webjson-server /usr/bin/webjson-server
-CMD ["webjson-server"]

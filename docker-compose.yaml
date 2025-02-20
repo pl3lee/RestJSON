@@ -1,0 +1,17 @@
+services:
+  client:
+    image: pl3lee/webjson-frontend:${SHA}
+    container_name: webjson-frontend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+
+  server:
+    image: pl3lee/webjson-frontend-api:${SHA}
+    container_name: webjson-frontend-api
+    restart: unless-stopped
+
+    ports:
+      - '3001:3001'
+    env_file:
+      - .env.frontend.api

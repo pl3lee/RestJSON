@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 jobs:
-  build_client:
-    name: Build client
+  build_frontend:
+    name: Build frontend
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -24,12 +24,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./client
+          context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-client:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-frontend:${{ github.sha }}
 
-  build_server:
-    name: Build server
+  build_frontend_api:
+    name: Build frontend-api
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -47,13 +47,13 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: ./frontend-api
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-server:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-frontend-api:${{ github.sha }}
 
   deploy:
     name: Deploy
-    needs: [build_client, build_server]
+    needs: [build_frontend, build_frontend_api]
     runs-on: ubuntu-latest
     steps:
       - name: Install SSH key
