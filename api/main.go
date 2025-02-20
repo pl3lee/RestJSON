@@ -47,14 +47,22 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	corsWeb := cors.New(cors.Options{
+		AllowedOrigins:   []string{cfg.ClientURL},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+	corsPublic := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	})
 	r.Route("/web", func(r chi.Router) {
-		r.Use(cors.Handler(cors.Options{
-			AllowedOrigins:   []string{cfg.ClientURL},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-			AllowCredentials: true,
-			MaxAge:           300,
-		}))
+		r.Use(corsWeb.Handler)
 		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
@@ -64,13 +72,7 @@ func main() {
 	})
 
 	r.Route("/public", func(r chi.Router) {
-		r.Use(cors.Handler(cors.Options{
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-			AllowCredentials: false,
-			MaxAge:           300,
-		}))
+		r.Use(corsPublic.Handler)
 		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
