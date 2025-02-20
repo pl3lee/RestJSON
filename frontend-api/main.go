@@ -11,9 +11,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
-	"github.com/pl3lee/webjson/internal/config"
 	"github.com/pl3lee/webjson/internal/utils"
 )
+
+type config struct {
+	port               string
+	clientURL          string
+	dbUrl              string
+	secret             string
+	googleClientID     string
+	googleClientSecret string
+	githubClientID     string
+	githubClientSecret string
+}
 
 func main() {
 	// env variables
@@ -22,13 +32,23 @@ func main() {
 	}
 	port := os.Getenv("PORT")
 	clientURL := os.Getenv("CLIENT_URL")
+	dbUrl := os.Getenv("DB_URL")
+	sec := os.Getenv("AUTH_SECRET")
+	googleClientID, googleClientSecret := os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET")
+	githubClientID, githubClientSecret := os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_CLIENT_SECRET")
 
-	cfg := config.Config{
-		Port:      port,
-		ClientURL: clientURL,
+	cfg := config{
+		port:               port,
+		clientURL:          clientURL,
+		dbUrl:              dbUrl,
+		secret:             sec,
+		googleClientID:     googleClientID,
+		googleClientSecret: googleClientSecret,
+		githubClientID:     githubClientID,
+		githubClientSecret: githubClientSecret,
 	}
 
-	log.Printf("CLIENT_URL is set to %v\n", cfg.ClientURL)
+	log.Printf("env vars: %s\n", cfg)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -38,7 +58,7 @@ func main() {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.ClientURL},
+		AllowedOrigins:   []string{cfg.clientURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -49,10 +69,10 @@ func main() {
 		utils.RespondWithJSON(w, http.StatusOK, "Hello world!")
 	})
 
-	log.Printf("Listening on port %v", cfg.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
+	log.Printf("Listening on port %v", cfg.port)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.port), r)
 	if err != nil {
-		log.Fatalf("error starting server at port %v", cfg.Port)
+		log.Fatalf("error starting server at port %v", cfg.port)
 	}
 
 }
