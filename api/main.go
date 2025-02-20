@@ -62,11 +62,10 @@ func main() {
 
 	r.Route("/public", func(r chi.Router) {
 		r.Use(cors.Handler(cors.Options{
-			AllowedOrigins:   []string{"*"},
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-			AllowCredentials: false,
-			MaxAge:           300,
+			AllowedOrigins: []string{"*"},
+			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+			MaxAge:         300,
 		}))
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithJSON(w, http.StatusOK, "Hello world from public router!")
