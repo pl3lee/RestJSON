@@ -48,7 +48,7 @@ func main() {
 	})
 	r.Use(corsPublic)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		utils.RespondWithJSON(w, http.StatusOK, "Hello world from public router!")
+		utils.RespondWithJSON(w, http.StatusOK, "Hello world from public api!")
 	})
 
 	log.Printf("Listening on port %v", cfg.Port)

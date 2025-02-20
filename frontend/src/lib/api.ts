@@ -1,6 +1,6 @@
 export const fetchHelloWebApi = async () => {
     try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/web`, {
+        const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}`, {
             credentials: "include"
         })
         if (!res.ok) {
@@ -13,7 +13,7 @@ export const fetchHelloWebApi = async () => {
 }
 export const fetchHelloPublicApi = async () => {
     try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/public`, {
+        const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}`, {
             credentials: "include"
         })
         if (!res.ok) {
