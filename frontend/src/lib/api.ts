@@ -13,9 +13,7 @@ export const fetchHelloWebApi = async () => {
 }
 export const fetchHelloPublicApi = async () => {
     try {
-        const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}`, {
-            credentials: "include"
-        })
+        const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}`)
         if (!res.ok) {
             throw new Error("Failed to fetch hello from public")
         }
