@@ -6,13 +6,23 @@ services:
     ports:
       - '3000:3000'
 
-  api:
-    image: pl3lee/webjson-api:${SHA}
-    container_name: webjson-api
+  web-api:
+    image: pl3lee/webjson-web-api:${SHA}
+    container_name: webjson-web-api
     restart: unless-stopped
 
     ports:
       - '3001:3001'
+    env_file:
+      - .env.api
+
+  public-api:
+    image: pl3lee/webjson-public-api:${SHA}
+    container_name: webjson-public-api
+    restart: unless-stopped
+
+    ports:
+      - '3002:3002'
     env_file:
       - .env.api
 

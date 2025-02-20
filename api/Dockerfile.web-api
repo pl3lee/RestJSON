@@ -4,5 +4,5 @@ COPY . .
 RUN ./scripts/buildprod.sh
 
 FROM debian:stable-slim AS runner
-COPY --from=builder /app/webjson-api /usr/bin/webjson-api
-CMD ["webjson-api"]
+COPY --from=builder /app/webjson-web-api /usr/bin/webjson-web-api
+CMD ["webjson-web-api"]

@@ -44,12 +44,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push web api
         uses: docker/build-push-action@v5
         with:
           context: ./api
+          file: ${{ github.workspace }}/api/Dockerfile.web-api
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-api:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-web-api:${{ github.sha }}
+
+      - name: Build and push public api
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          file: ${{ github.workspace }}/api/Dockerfile.public-api
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-public-api:${{ github.sha }}
 
   deploy_staging:
     name: Deploy to staging server
