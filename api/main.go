@@ -55,6 +55,9 @@ func main() {
 			AllowCredentials: true,
 			MaxAge:           300,
 		}))
+		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithJSON(w, http.StatusOK, "Hello world from web router!")
 		})
@@ -68,6 +71,9 @@ func main() {
 			AllowCredentials: false,
 			MaxAge:           300,
 		}))
+		r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			utils.RespondWithJSON(w, http.StatusOK, "Hello world from public router!")
 		})
