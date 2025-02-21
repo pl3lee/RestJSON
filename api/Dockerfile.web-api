@@ -4,5 +4,6 @@ COPY . .
 RUN ./scripts/buildprod.sh
 
 FROM debian:stable-slim AS runner
+RUN apt-get update && apt-get install -y ca-certificates
 COPY --from=builder /app/webjson-web-api /usr/bin/webjson-web-api
 CMD ["webjson-web-api"]
