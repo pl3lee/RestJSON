@@ -1,4 +1,3 @@
-import './App.css'
 import { useQuery } from '@tanstack/react-query'
 import { fetchHelloWebApi, fetchHelloPublicApi } from './lib/api'
 

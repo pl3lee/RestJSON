@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/config"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
@@ -32,7 +33,7 @@ func main() {
 
 	pgDb, err := sql.Open("postgres", dbUrl)
 	if err != nil {
-		log.Fatalf("cannot open database: %w", err)
+		log.Fatalf("cannot open database: %v", err)
 	}
 	dbQueries := database.New(pgDb)
 
@@ -48,7 +49,17 @@ func main() {
 		Db:                 dbQueries,
 	}
 
-	log.Printf("env vars: %s\n", cfg)
+	authConfig := auth.AuthConfig{
+		Db:                 cfg.Db,
+		Secret:             cfg.Secret,
+		GoogleClientID:     cfg.GoogleClientID,
+		GoogleClientSecret: cfg.GoogleClientSecret,
+		GithubClientID:     cfg.GithubClientID,
+		GithubClientSecret: cfg.GithubClientSecret,
+		ClientURL:          cfg.ClientURL,
+	}
+
+	log.Printf("env vars: %v\n", cfg)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -67,6 +78,16 @@ func main() {
 	r.Use(corsWeb)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithJSON(w, http.StatusOK, "Hello world from web api!")
+	})
+
+	// public routes
+	r.Post("/auth/google/callback", authConfig.HandlerGoogleCallback)
+
+	r.Group(func(r chi.Router) {
+		r.Use(authConfig.AuthMiddleware)
+
+		r.Get("/me", authConfig.HandlerGetMe)
+		r.Post("/logout", authConfig.HandlerLogout)
 	})
 
 	log.Printf("Listening on port %v", cfg.Port)
