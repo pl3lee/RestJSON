@@ -3,11 +3,11 @@ import { useGoogleLogin } from "@react-oauth/google";
 export function Auth() {
     const login = useGoogleLogin({
         flow: "auth-code",
-        redirect_uri: "http://localhost:5173/auth",
+        redirect_uri: `${import.meta.env.VITE_BASE_URL}/auth`,
         onSuccess: async (codeResponse) => {
             try {
                 const response = await fetch(
-                    "http://localhost:3001/auth/google/callback",
+                    `${import.meta.env.VITE_WEB_API_URL}/auth/google/callback`,
                     {
                         method: "POST",
                         headers: {
