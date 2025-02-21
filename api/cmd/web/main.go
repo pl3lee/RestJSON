@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/pl3lee/webjson/internal/config"
+	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
@@ -27,6 +30,12 @@ func main() {
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
 	githubClientID, githubClientSecret := os.Getenv("WEB_GITHUB_CLIENT_ID"), os.Getenv("WEB_GITHUB_CLIENT_SECRET")
 
+	pgDb, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatalf("cannot open database: %w", err)
+	}
+	dbQueries := database.New(pgDb)
+
 	cfg := config.Config{
 		Port:               port,
 		ClientURL:          clientURL,
@@ -36,6 +45,7 @@ func main() {
 		GoogleClientSecret: googleClientSecret,
 		GithubClientID:     githubClientID,
 		GithubClientSecret: githubClientSecret,
+		Db:                 dbQueries,
 	}
 
 	log.Printf("env vars: %s\n", cfg)
@@ -60,7 +70,7 @@ func main() {
 	})
 
 	log.Printf("Listening on port %v", cfg.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
+	err = http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
 	if err != nil {
 		log.Fatalf("error starting server at port %v", cfg.Port)
 	}

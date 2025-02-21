@@ -1,5 +1,7 @@
 package config
 
+import "github.com/pl3lee/webjson/internal/database"
+
 type Config struct {
 	Port               string
 	ClientURL          string
@@ -9,4 +11,5 @@ type Config struct {
 	GoogleClientSecret string
 	GithubClientID     string
 	GithubClientSecret string
+	Db                 *database.Queries
 }
