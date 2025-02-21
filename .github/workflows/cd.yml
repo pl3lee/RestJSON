@@ -83,7 +83,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no billy@${{ secrets.DROPLET_IP }} << 'EOF'
             cd /home/billy/webjson
-          docker run --rm -v /home/billy/webjson/sql/schema:/migrations gomicro/goose:latest postgres "$DB_URL" up
+            docker run --rm -v /home/billy/webjson/sql/schema:/migrations \
+              -e GOOSE_DRIVER="postgres" -e GOOSE_DBSTRING="$DB_URL" kukymbr/goose-docker:3.24.1
             echo SHA=${{ github.sha }} > .env
             docker compose pull
             docker compose up -d
