@@ -64,16 +64,23 @@ jobs:
     name: Deploy to staging server
     needs: [build_frontend, build_api]
     runs-on: ubuntu-latest
+    env:
+      DB_URL: postgres://postgres:postgres@localhost:5432/webjson?sslmode=disable
     steps:
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.DROPLET_SSH_KEY }}
 
+      - name: Copy over migration schemas
+        run: |
+          scp -r ./api/sql/schema billy@{{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema/
+
       - name: SSH and pull
         run: |
           ssh -o StrictHostKeyChecking=no billy@${{ secrets.DROPLET_IP }} << 'EOF'
             cd /home/billy/webjson
+            docker run --rm -v /home/billy/webjson/sql/schema:/migrations ghcr.io/pressly/goose postgres "$DB_URL" up
             echo SHA=${{ github.sha }} > .env
             docker compose pull
             docker compose up -d
