@@ -1,5 +1,3 @@
-import OauthPopup from "react-oauth-popup"
-import { generateGoogleUrl } from "../lib/oauth"
 import { useGoogleLogin } from "@react-oauth/google";
 
 export function Auth() {
