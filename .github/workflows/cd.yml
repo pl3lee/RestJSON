@@ -67,6 +67,9 @@ jobs:
     env:
       DB_URL: postgres://postgres:postgres@localhost:5432/webjson?sslmode=disable
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
