@@ -29,7 +29,6 @@ func main() {
 	dbUrl := os.Getenv("SHARED_DB_URL")
 	sec := os.Getenv("WEB_AUTH_SECRET")
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
-	githubClientID, githubClientSecret := os.Getenv("WEB_GITHUB_CLIENT_ID"), os.Getenv("WEB_GITHUB_CLIENT_SECRET")
 
 	pgDb, err := sql.Open("postgres", dbUrl)
 	if err != nil {
@@ -44,8 +43,6 @@ func main() {
 		Secret:             sec,
 		GoogleClientID:     googleClientID,
 		GoogleClientSecret: googleClientSecret,
-		GithubClientID:     githubClientID,
-		GithubClientSecret: githubClientSecret,
 		Db:                 dbQueries,
 	}
 
@@ -54,8 +51,6 @@ func main() {
 		Secret:             cfg.Secret,
 		GoogleClientID:     cfg.GoogleClientID,
 		GoogleClientSecret: cfg.GoogleClientSecret,
-		GithubClientID:     cfg.GithubClientID,
-		GithubClientSecret: cfg.GithubClientSecret,
 		ClientURL:          cfg.ClientURL,
 	}
 

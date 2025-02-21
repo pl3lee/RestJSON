@@ -9,7 +9,5 @@ type Config struct {
 	Secret             string
 	GoogleClientID     string
 	GoogleClientSecret string
-	GithubClientID     string
-	GithubClientSecret string
 	Db                 *database.Queries
 }
