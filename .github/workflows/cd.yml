@@ -77,7 +77,7 @@ jobs:
 
       - name: Copy over migration schemas
         run: |
-          scp -r ./api/sql/schema billy@{{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema/
+          scp -r ./api/sql/schema billy@${{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema/
 
       - name: SSH and pull
         run: |
