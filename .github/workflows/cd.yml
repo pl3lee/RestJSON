@@ -77,13 +77,13 @@ jobs:
 
       - name: Copy over migration schemas
         run: |
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./api/sql/schema billy@${{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema/
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./api/sql/schema billy@${{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema
 
       - name: SSH and pull
         run: |
           ssh -o StrictHostKeyChecking=no billy@${{ secrets.DROPLET_IP }} << 'EOF'
             cd /home/billy/webjson
-            docker run --rm -v /home/billy/webjson/sql/schema:/migrations \
+            docker run --rm --network host -v /home/billy/webjson/sql/schema:/migrations \
               -e GOOSE_DRIVER="postgres" -e GOOSE_DBSTRING="$DB_URL" kukymbr/goose-docker:3.24.1
             echo SHA=${{ github.sha }} > .env
             docker compose pull
