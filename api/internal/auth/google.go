@@ -32,7 +32,7 @@ func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, e
 	oauth2Config := &oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
-		RedirectURL:  cfg.ClientURL + "/auth",
+		RedirectURL:  "https://staging.billylee.me/auth", // just for testing
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
