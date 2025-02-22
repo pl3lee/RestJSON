@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"golang.org/x/oauth2"
@@ -27,6 +28,7 @@ func (g GoogleUserInfo) String() string {
 }
 
 func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
+
 	oauth2Config := &oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
@@ -37,6 +39,7 @@ func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, e
 		},
 		Endpoint: google.Endpoint,
 	}
+	log.Printf("redirect_uri is %v", oauth2Config)
 
 	return oauth2Config.Exchange(context.Background(), code)
 }
