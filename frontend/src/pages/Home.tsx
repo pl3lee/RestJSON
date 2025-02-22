@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchHelloWebApi, fetchHelloPublicApi } from './lib/api'
+import { fetchHelloWebApi, fetchHelloPublicApi } from '../lib/api'
 
-function App() {
+function Home() {
 
     const { data: helloWebApiData, isLoading: helloWebApiLoading } = useQuery({ queryKey: ['helloweb'], queryFn: fetchHelloWebApi })
     const { data: helloPublicApiData, isLoading: helloPublicApiLoading } = useQuery({ queryKey: ['hellopublic'], queryFn: fetchHelloPublicApi })
@@ -14,4 +14,4 @@ function App() {
     )
 }
 
-export default App
+export default Home

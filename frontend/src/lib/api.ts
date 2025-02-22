@@ -8,7 +8,39 @@ export const fetchHelloWebApi = async () => {
         }
         return res.json()
     } catch (e) {
-        console.log(e)
+        console.error(e)
+    }
+}
+
+export async function fetchMe() {
+    try {
+        const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
+            credentials: "include"
+        })
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch user information");
+        }
+        return res.json();
+    } catch (e) {
+        console.error(e)
+    }
+}
+
+export async function logout() {
+    try {
+        const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/logout`, {
+            method: "POST",
+            credentials: "include"
+        })
+
+        if (!res.ok) {
+            throw new Error("Failed to logout");
+        }
+
+        return res.json();
+    } catch (e) {
+        console.error(e);
     }
 }
 export const fetchHelloPublicApi = async () => {
@@ -19,6 +51,6 @@ export const fetchHelloPublicApi = async () => {
         }
         return res.json()
     } catch (e) {
-        console.log(e)
+        console.error(e)
     }
 }

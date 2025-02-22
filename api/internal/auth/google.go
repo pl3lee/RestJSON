@@ -32,14 +32,13 @@ func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, e
 	oauth2Config := &oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
-		RedirectURL:  "postmessage", // just for testing
+		RedirectURL:  "postmessage",
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
 		},
 		Endpoint: google.Endpoint,
 	}
-	log.Printf("redirect_uri is %v", oauth2Config)
 
 	return oauth2Config.Exchange(context.Background(), code)
 }

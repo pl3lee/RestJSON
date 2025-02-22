@@ -1,9 +1,10 @@
 import { useGoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router";
 
 export function Auth() {
+    const navigate = useNavigate();
     const login = useGoogleLogin({
         flow: "auth-code",
-        //redirect_uri: `${import.meta.env.VITE_BASE_URL}/auth`,
         redirect_uri: `postmessage`,
         onSuccess: async (codeResponse) => {
             try {
@@ -23,6 +24,7 @@ export function Auth() {
                 }
                 const data = await response.json();
                 console.log("auth data from api", data);
+                navigate("/app");
             } catch (error) {
                 console.error("Login error:", error);
             }
