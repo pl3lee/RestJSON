@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router";
 
@@ -34,6 +35,6 @@ export function Auth() {
         },
     });
     return <div className="flex flex-col gap-2">
-        <button onClick={login}>Login with google</button>
+        <Button onClick={login}>Login with google</Button>
     </div>
 }
