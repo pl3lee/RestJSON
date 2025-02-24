@@ -11,7 +11,14 @@ import (
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
+func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
+	// TODO: generate google url
+
+	// TODO: redirect user to google url
+}
+
 func (cfg *AuthConfig) HandlerGoogleCallback(w http.ResponseWriter, r *http.Request) {
+	// TODO: Change this to get the code from query params
 	var req struct {
 		Code string `json:"code"`
 	}
