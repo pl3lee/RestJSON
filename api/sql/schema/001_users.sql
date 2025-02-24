@@ -8,15 +8,14 @@ CREATE TABLE users (
   name TEXT NOT NULL
 );
 
-CREATE TABLE refresh_tokens (
-  token TEXT PRIMARY KEY,
+CREATE TABLE user_sessions (
+  id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMP NOT NULL,
-  revoked_at TIMESTAMP DEFAULT NULL
+  expires_at TIMESTAMP NOT NULL
 );
 
 -- +goose Down
 DROP TABLE users;
-DROP TABLE refresh_tokens;
+DROP TABLE user_sessions;
