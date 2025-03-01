@@ -30,7 +30,6 @@ func main() {
 		Secret: sec,
 	}
 
-	log.Printf("env vars: %s\n", cfg)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
