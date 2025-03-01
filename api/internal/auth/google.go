@@ -12,8 +12,6 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-var googleApiUrl string = "https://www.googleapis.com/oauth2/v3/userinfo"
-
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
 	Name          string `json:"name"`
@@ -66,6 +64,7 @@ func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, e
 }
 
 func getUserInfoGoogle(accessToken string) (*GoogleUserInfo, error) {
+	googleApiUrl := "https://www.googleapis.com/oauth2/v3/userinfo"
 	req, err := http.NewRequest("GET", googleApiUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
