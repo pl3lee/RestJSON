@@ -26,7 +26,7 @@ func (cfg *AuthConfig) getGoogleConfig() oauth2.Config {
 	oauth2Config := oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
-		RedirectURL:  "postmessage",
+		RedirectURL:  fmt.Sprintf("%s/auth/google/callback", cfg.WebBaseURL),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
