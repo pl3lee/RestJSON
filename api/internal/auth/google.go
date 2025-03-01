@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,11 +42,22 @@ func (g GoogleUserInfo) String() string {
 	return fmt.Sprintf("User{ID: %s, Name: %s, Email: %s}", g.Sub, g.Name, g.Email)
 }
 
-func (cfg *AuthConfig) getAuthCodeURL() string {
+func generateState() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("generateState: failed to generate state: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
+}
+
+func (cfg *AuthConfig) getAuthCodeURL() (url string, state string, err error) {
 	oauth2Config := cfg.getGoogleConfig()
-	// TODO: change the state
-	url := oauth2Config.AuthCodeURL("state")
-	return url
+	state, err = generateState()
+	if err != nil {
+		return "", "", fmt.Errorf("getAuthCodeURL: cannot generate state: %w", err)
+	}
+	url = oauth2Config.AuthCodeURL(state)
+	return url, state, nil
 }
 
 func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
