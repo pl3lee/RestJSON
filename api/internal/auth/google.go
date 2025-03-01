@@ -22,13 +22,8 @@ type GoogleUserInfo struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
-func (g GoogleUserInfo) String() string {
-	return fmt.Sprintf("User{ID: %s, Name: %s, Email: %s}", g.Sub, g.Name, g.Email)
-}
-
-func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
-
-	oauth2Config := &oauth2.Config{
+func (cfg *AuthConfig) getGoogleConfig() oauth2.Config {
+	oauth2Config := oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
 		RedirectURL:  "postmessage",
@@ -38,7 +33,22 @@ func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, e
 		},
 		Endpoint: google.Endpoint,
 	}
+	return oauth2Config
+}
 
+func (g GoogleUserInfo) String() string {
+	return fmt.Sprintf("User{ID: %s, Name: %s, Email: %s}", g.Sub, g.Name, g.Email)
+}
+
+func (cfg *AuthConfig) getAuthCodeURL() string {
+	oauth2Config := cfg.getGoogleConfig()
+	// TODO: change the state
+	url := oauth2Config.AuthCodeURL("state")
+	return url
+}
+
+func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
+	oauth2Config := cfg.getGoogleConfig()
 	return oauth2Config.Exchange(context.Background(), code)
 }
 
