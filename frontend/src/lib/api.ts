@@ -27,6 +27,10 @@ export async function fetchMe() {
     }
 }
 
+export async function login() {
+    window.location.href = `${import.meta.env.VITE_WEB_API_URL}/auth/google/login`
+}
+
 export async function logout() {
     try {
         const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/logout`, {
@@ -38,7 +42,7 @@ export async function logout() {
             throw new Error("Failed to logout");
         }
 
-        return res.json();
+        return
     } catch (e) {
         console.error(e);
     }

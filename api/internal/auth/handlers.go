@@ -1,10 +1,9 @@
 package auth
 
 import (
-	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/database"
@@ -12,110 +11,107 @@ import (
 )
 
 func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	// TODO: generate google url
+	url, state, err := cfg.getAuthCodeURL()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot generate google url", err)
+		return
+	}
+	isProd := !strings.Contains(cfg.WebBaseURL, "https")
 
-	// TODO: redirect user to google url
+	http.SetCookie(w, &http.Cookie{
+		Name:     "oauthstate",
+		Value:    state,
+		HttpOnly: true,
+		Secure:   isProd,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/auth/google/callback",
+	})
+
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
 func (cfg *AuthConfig) HandlerGoogleCallback(w http.ResponseWriter, r *http.Request) {
-	// TODO: Change this to get the code from query params
-	var req struct {
-		Code string `json:"code"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request", err)
-		return
-	}
-
-	// Exchange code for tokens
-	token, err := cfg.exchangeCodeForTokenGoogle(req.Code)
+	// check state to see if they match
+	stateCookie, err := r.Cookie("oauthstate")
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Token exchange failed", err)
+		utils.RespondWithError(w, http.StatusBadRequest, "state cookie not found", err)
+		return
+	}
+	state := stateCookie.Value
+	queryState := r.URL.Query().Get("state")
+	if state != queryState {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid state", nil)
 		return
 	}
 
-	// Get user info using access token
+	authCode := r.URL.Query().Get("code")
+	if authCode == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "auth code not found", nil)
+		return
+	}
+
+	// exchange code for tokens
+	token, err := cfg.exchangeCodeForTokenGoogle(authCode)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "token exchange failed", err)
+		return
+	}
+
+	// get user info using access token
 	userInfo, err := getUserInfoGoogle(token.AccessToken)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to get user info", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to get user info", err)
 		return
 	}
-	fmt.Printf("%v logged in", userInfo)
+	log.Printf("%v logged in\n", userInfo)
 
 	// find user in database
 	userDb, err := cfg.Db.GetUserByProviderId(r.Context(), userInfo.Sub)
 	if err != nil {
 		// user doesn't exist in database
-		// Save user info in database
+		// save user info in database
 		userDb, err = cfg.Db.CreateUser(r.Context(), database.CreateUserParams{
 			ProviderID: userInfo.Sub,
 			Email:      userInfo.Email,
 			Name:       userInfo.Name,
 		})
 		if err != nil {
-			utils.RespondWithError(w, http.StatusInternalServerError, "Error inserting into database", err)
+			utils.RespondWithError(w, http.StatusInternalServerError, "error inserting into database", err)
 			return
 		}
 	}
 
-	var expiration time.Duration = time.Hour
-	// Create JWT
-	jwtToken, err := MakeJWT(userDb.ID, cfg.Secret, expiration)
+	sessionToken, err := generateSessionToken()
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating JWT", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "error creating session token", err)
 		return
 	}
 
-	refreshToken, err := MakeRefreshToken()
+	session, err := cfg.createSession(r.Context(), sessionToken, userDb.ID)
 	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error creating refresh token", err)
+		utils.RespondWithError(w, http.StatusInternalServerError, "error creating session", err)
 		return
 	}
-	_, err = cfg.Db.StoreRefreshToken(r.Context(), database.StoreRefreshTokenParams{
-		Token:     refreshToken,
-		UserID:    userDb.ID,
-		ExpiresAt: time.Now().Add(time.Hour * 24 * 60),
-	})
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Error storing refresh token", err)
-		return
-	}
+	isProd := !strings.Contains(cfg.WebBaseURL, "https")
 
-	// Set jwt cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "jwt",
-		Value:    jwtToken,
+		Name:     "session_token",
+		Value:    sessionToken,
 		Path:     "/",
-		Domain:   "", // Empty for same-origin
-		HttpOnly: true,
+		HttpOnly: isProd,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(expiration),
+		Expires:  session.ExpiresAt,
 	})
 
-	// Set refresh token cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Path:     "/",
-		Domain:   "",
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(time.Hour * 24 * 60),
-	})
-
-	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"status": "success",
-		"user":   userDb,
-	})
+	http.Redirect(w, r, cfg.ClientURL+"/app", http.StatusFound)
 
 }
 
 func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 	// Clear cookies
 	http.SetCookie(w, &http.Cookie{
-		Name:     "jwt",
+		Name:     "session_token",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -124,19 +120,7 @@ func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	})
-
-	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
-		"status": "logged out",
-	})
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
 func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {

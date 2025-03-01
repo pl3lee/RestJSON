@@ -79,7 +79,8 @@ func main() {
 	})
 
 	// public routes
-	r.Post("/auth/google/callback", authConfig.HandlerGoogleCallback)
+	r.Get("/auth/google/login", authConfig.HandlerGoogleLogin)
+	r.Get("/auth/google/callback", authConfig.HandlerGoogleCallback)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authConfig.AuthMiddleware)

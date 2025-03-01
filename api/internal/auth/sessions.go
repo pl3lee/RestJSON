@@ -57,6 +57,7 @@ func (cfg *AuthConfig) validateSessionToken(ctx context.Context, token string) (
 		if err := cfg.Db.InvalidateSession(ctx, sessionId); err != nil {
 			return database.UserSession{}, database.User{}, fmt.Errorf("validateSessionToken: cannot invalidate session: %w", err)
 		}
+		return database.UserSession{}, database.User{}, fmt.Errorf("validateSessionToken: token expired")
 	}
 	// expires in 15 days, extend session
 	if session.ExpiresAt.Before(time.Now().Add(time.Hour * 24 * 15)) {
