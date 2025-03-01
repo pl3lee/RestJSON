@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { login } from "@/lib/api";
-import { useGoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router";
 
 export function Auth() {
 	return (
