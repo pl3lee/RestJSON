@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,8 +11,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
-
-var googleApiUrl string = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
@@ -22,27 +22,49 @@ type GoogleUserInfo struct {
 	EmailVerified bool   `json:"email_verified"`
 }
 
-func (g GoogleUserInfo) String() string {
-	return fmt.Sprintf("User{ID: %s, Name: %s, Email: %s}", g.Sub, g.Name, g.Email)
-}
-
-func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
-
-	oauth2Config := &oauth2.Config{
+func (cfg *AuthConfig) getGoogleConfig() oauth2.Config {
+	oauth2Config := oauth2.Config{
 		ClientID:     cfg.GoogleClientID,
 		ClientSecret: cfg.GoogleClientSecret,
-		RedirectURL:  "postmessage",
+		RedirectURL:  fmt.Sprintf("%s/auth/google/callback", cfg.WebBaseURL),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
 		},
 		Endpoint: google.Endpoint,
 	}
+	return oauth2Config
+}
 
+func (g GoogleUserInfo) String() string {
+	return fmt.Sprintf("User{ID: %s, Name: %s, Email: %s}", g.Sub, g.Name, g.Email)
+}
+
+func generateState() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("generateState: failed to generate state: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
+}
+
+func (cfg *AuthConfig) getAuthCodeURL() (url string, state string, err error) {
+	oauth2Config := cfg.getGoogleConfig()
+	state, err = generateState()
+	if err != nil {
+		return "", "", fmt.Errorf("getAuthCodeURL: cannot generate state: %w", err)
+	}
+	url = oauth2Config.AuthCodeURL(state)
+	return url, state, nil
+}
+
+func (cfg *AuthConfig) exchangeCodeForTokenGoogle(code string) (*oauth2.Token, error) {
+	oauth2Config := cfg.getGoogleConfig()
 	return oauth2Config.Exchange(context.Background(), code)
 }
 
 func getUserInfoGoogle(accessToken string) (*GoogleUserInfo, error) {
+	googleApiUrl := "https://www.googleapis.com/oauth2/v3/userinfo"
 	req, err := http.NewRequest("GET", googleApiUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)

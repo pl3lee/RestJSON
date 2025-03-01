@@ -7,6 +7,7 @@ type Config struct {
 	ClientURL          string
 	DbUrl              string
 	Secret             string
+	WebBaseURL         string
 	GoogleClientID     string
 	GoogleClientSecret string
 	Db                 *database.Queries

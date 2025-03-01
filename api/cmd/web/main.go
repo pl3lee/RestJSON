@@ -28,6 +28,7 @@ func main() {
 	clientURL := os.Getenv("SHARED_CLIENT_URL")
 	dbUrl := os.Getenv("SHARED_DB_URL")
 	sec := os.Getenv("WEB_AUTH_SECRET")
+	baseUrl := os.Getenv("WEB_BASE_URL")
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
 
 	pgDb, err := sql.Open("postgres", dbUrl)
@@ -41,6 +42,7 @@ func main() {
 		ClientURL:          clientURL,
 		DbUrl:              dbUrl,
 		Secret:             sec,
+		WebBaseURL:         baseUrl,
 		GoogleClientID:     googleClientID,
 		GoogleClientSecret: googleClientSecret,
 		Db:                 dbQueries,
@@ -49,6 +51,7 @@ func main() {
 	authConfig := auth.AuthConfig{
 		Db:                 cfg.Db,
 		Secret:             cfg.Secret,
+		WebBaseURL:         baseUrl,
 		GoogleClientID:     cfg.GoogleClientID,
 		GoogleClientSecret: cfg.GoogleClientSecret,
 		ClientURL:          cfg.ClientURL,
@@ -76,7 +79,8 @@ func main() {
 	})
 
 	// public routes
-	r.Post("/auth/google/callback", authConfig.HandlerGoogleCallback)
+	r.Get("/auth/google/login", authConfig.HandlerGoogleLogin)
+	r.Get("/auth/google/callback", authConfig.HandlerGoogleCallback)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authConfig.AuthMiddleware)
@@ -84,9 +88,17 @@ func main() {
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Post("/logout", authConfig.HandlerLogout)
 	})
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%v", cfg.Port),
+		Handler:           r,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
 	log.Printf("Listening on port %v", cfg.Port)
-	err = http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error starting server at port %v", cfg.Port)
 	}
