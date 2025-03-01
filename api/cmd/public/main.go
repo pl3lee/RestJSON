@@ -50,10 +50,18 @@ func main() {
 		utils.RespondWithJSON(w, http.StatusOK, "Hello world from public api!")
 	})
 
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%v", cfg.Port),
+		Handler:           r,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	log.Printf("Listening on port %v", cfg.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), r)
+	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error starting server at port %v", cfg.Port)
 	}
-
 }

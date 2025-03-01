@@ -23,7 +23,9 @@ func (cfg *AuthConfig) AuthMiddleware(next http.Handler) http.Handler {
 
 		// valid token, proceed with request
 		// add user ID to context
-		ctx := context.WithValue(r.Context(), "user_id", user.ID)
+		type contextKey string
+		const userIDKey contextKey = "user_id"
+		ctx := context.WithValue(r.Context(), userIDKey, user.ID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
