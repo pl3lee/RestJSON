@@ -3,8 +3,12 @@ import { fetchMe, logout } from "../lib/api";
 
 export function useAuth() {
 	const queryClient = useQueryClient();
-	const { data: user, isLoading, error } = useQuery({
-		queryKey: ['auth'],
+	const {
+		data: user,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ["auth"],
 		queryFn: fetchMe,
 		retry: false,
 		staleTime: 1000 * 60 * 5, // 5 mins
@@ -18,8 +22,8 @@ export function useAuth() {
 				excat: false,
 				throwOnError: false,
 				cancelRefetch: true,
-			})
-		}
+			});
+		},
 	});
 
 	return {
