@@ -75,3 +75,28 @@ func (q *Queries) StoreUserSession(ctx context.Context, arg StoreUserSessionPara
 	)
 	return i, err
 }
+
+const updateSession = `-- name: UpdateSession :one
+UPDATE user_sessions
+SET expires_at=$2
+WHERE id=$1
+RETURNING id, user_id, created_at, updated_at, expires_at
+`
+
+type UpdateSessionParams struct {
+	ID        string
+	ExpiresAt time.Time
+}
+
+func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) (UserSession, error) {
+	row := q.db.QueryRowContext(ctx, updateSession, arg.ID, arg.ExpiresAt)
+	var i UserSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}

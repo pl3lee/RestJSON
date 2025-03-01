@@ -8,6 +8,12 @@ SELECT *
 FROM user_sessions
 WHERE id=$1;
 
+-- name: UpdateSession :one
+UPDATE user_sessions
+SET expires_at=$2
+WHERE id=$1
+RETURNING *;
+
 -- name: InvalidateSession :exec
 DELETE FROM user_sessions
 WHERE id=$1;
