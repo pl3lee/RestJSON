@@ -5,8 +5,48 @@ on:
     branches: [main]
 
 jobs:
-  tests_api:
-    name: Tests api
+  test_frontend:
+    name: Test frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install packages
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm run test
+
+  lint_frontend:
+    name: Lint frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install packages
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint
+
+  test_api:
+    name: Test api
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -16,18 +56,21 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.24.0"
+      
+      - name: Download dependencies
+        working-directory: ./api
+        run: go mod download
 
       - name: Install gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
       - name: Run tests
-        run: go test -cover ./...
         working-directory: ./api
+        run: go test -cover ./...
 
       - name: Security check
-        run: gosec ./...
         working-directory: ./api
-
+        run: gosec ./...
 
   style_api:
     name: Style api
@@ -41,13 +84,16 @@ jobs:
         with:
           go-version: "1.24.0"
 
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Download dependencies
+        working-directory: ./api
+        run: go mod download
 
       - name: Style
         run: test -z $(go fmt ./...)
         working-directory: ./api
 
       - name: Lint
-        run: staticcheck ./...
-        working-directory: ./api
+        uses: dominikh/staticcheck-action@v1
+        with:
+          version: "latest"
+          working-directory: ./api
