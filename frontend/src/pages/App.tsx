@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export function App() {
 	const navigate = useNavigate();
@@ -13,9 +14,9 @@ export function App() {
 	return (
 		<div className="flex flex-col gap-5">
 			Welcome {user.name}!
-			<button type="button" onClick={() => logout()}>
+			<Button type="button" onClick={() => logout()}>
 				Logout
-			</button>
+			</Button>
 		</div>
 	);
 }
