@@ -7,6 +7,10 @@ import (
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
+type contextKey string
+
+const userIDKey contextKey = "user_id"
+
 func (cfg *AuthConfig) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionCookie, err := r.Cookie("session_token")
@@ -23,8 +27,6 @@ func (cfg *AuthConfig) AuthMiddleware(next http.Handler) http.Handler {
 
 		// valid token, proceed with request
 		// add user ID to context
-		type contextKey string
-		const userIDKey contextKey = "user_id"
 		ctx := context.WithValue(r.Context(), userIDKey, user.ID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

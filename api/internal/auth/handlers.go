@@ -124,7 +124,7 @@ func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value("user_id").(uuid.UUID)
+	userId := r.Context().Value(userIDKey).(uuid.UUID)
 
 	user, err := cfg.Db.GetUserById(r.Context(), userId)
 	if err != nil {
@@ -132,7 +132,7 @@ func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+	utils.RespondWithJSON(w, http.StatusOK, map[string]any{
 		"id":    user.ID,
 		"email": user.Email,
 		"name":  user.Name,
