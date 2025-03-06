@@ -14,10 +14,19 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pl3lee/webjson/internal/auth"
-	"github.com/pl3lee/webjson/internal/config"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
 )
+
+type config struct {
+	port               string
+	clientURL          string
+	dbUrl              string
+	webBaseURL         string
+	googleClientID     string
+	googleClientSecret string
+	db                 *database.Queries
+}
 
 func main() {
 	// env variables
@@ -27,7 +36,6 @@ func main() {
 	port := os.Getenv("WEB_PORT")
 	clientURL := os.Getenv("SHARED_CLIENT_URL")
 	dbUrl := os.Getenv("SHARED_DB_URL")
-	sec := os.Getenv("WEB_AUTH_SECRET")
 	baseUrl := os.Getenv("WEB_BASE_URL")
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
 
@@ -37,24 +45,22 @@ func main() {
 	}
 	dbQueries := database.New(pgDb)
 
-	cfg := config.Config{
-		Port:               port,
-		ClientURL:          clientURL,
-		DbUrl:              dbUrl,
-		Secret:             sec,
-		WebBaseURL:         baseUrl,
-		GoogleClientID:     googleClientID,
-		GoogleClientSecret: googleClientSecret,
-		Db:                 dbQueries,
+	cfg := config{
+		port:               port,
+		clientURL:          clientURL,
+		dbUrl:              dbUrl,
+		webBaseURL:         baseUrl,
+		googleClientID:     googleClientID,
+		googleClientSecret: googleClientSecret,
+		db:                 dbQueries,
 	}
 
 	authConfig := auth.AuthConfig{
-		Db:                 cfg.Db,
-		Secret:             cfg.Secret,
+		Db:                 cfg.db,
 		WebBaseURL:         baseUrl,
-		GoogleClientID:     cfg.GoogleClientID,
-		GoogleClientSecret: cfg.GoogleClientSecret,
-		ClientURL:          cfg.ClientURL,
+		GoogleClientID:     cfg.googleClientID,
+		GoogleClientSecret: cfg.googleClientSecret,
+		ClientURL:          cfg.clientURL,
 	}
 
 	log.Printf("env vars: %v\n", cfg)
@@ -67,7 +73,7 @@ func main() {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	corsWeb := cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.ClientURL},
+		AllowedOrigins:   []string{cfg.clientURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -89,7 +95,7 @@ func main() {
 		r.Post("/logout", authConfig.HandlerLogout)
 	})
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%v", cfg.Port),
+		Addr:              fmt.Sprintf(":%v", cfg.port),
 		Handler:           r,
 		ReadTimeout:       15 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
@@ -97,10 +103,10 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	log.Printf("Listening on port %v", cfg.Port)
+	log.Printf("Listening on port %v", cfg.port)
 	err = srv.ListenAndServe()
 	if err != nil {
-		log.Fatalf("error starting server at port %v", cfg.Port)
+		log.Fatalf("error starting server at port %v", cfg.port)
 	}
 
 }

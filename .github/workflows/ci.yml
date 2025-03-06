@@ -5,6 +5,26 @@ on:
     branches: [main]
 
 jobs:
+  builds_frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install packages
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Verifies that frontend can be built
+        working-directory: ./frontend
+        run: npm run build
+
   test_frontend:
     name: Test frontend
     runs-on: ubuntu-latest
