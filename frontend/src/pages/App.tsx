@@ -1,6 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
-import { Button } from "@/components/ui/button";
 
 export function App() {
 	const navigate = useNavigate();
