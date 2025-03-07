@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"strings"
@@ -109,7 +111,6 @@ func (cfg *AuthConfig) HandlerGoogleCallback(w http.ResponseWriter, r *http.Requ
 }
 
 func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
 	// Clear cookies
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -120,6 +121,21 @@ func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
+
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "can't get session token from cookie", err)
+		return
+	}
+	token := sessionCookie.Value
+	hashBytes := sha256.Sum256([]byte(token))
+	sessionId := hex.EncodeToString(hashBytes[:])
+
+	err = cfg.invalidateSession(r.Context(), sessionId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "can't invalidate session", err)
+		return
+	}
 
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
