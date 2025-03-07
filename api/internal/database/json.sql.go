@@ -12,19 +12,25 @@ import (
 )
 
 const createNewJson = `-- name: CreateNewJson :one
-INSERT INTO json_files (user_id, file_name, url)
-VALUES($1, $2, $3)
+INSERT INTO json_files (id, user_id, file_name, url)
+VALUES($1, $2, $3, $4)
 RETURNING id, created_at, updated_at, user_id, file_name, url
 `
 
 type CreateNewJsonParams struct {
+	ID       uuid.UUID
 	UserID   uuid.UUID
 	FileName string
 	Url      string
 }
 
 func (q *Queries) CreateNewJson(ctx context.Context, arg CreateNewJsonParams) (JsonFile, error) {
-	row := q.db.QueryRowContext(ctx, createNewJson, arg.UserID, arg.FileName, arg.Url)
+	row := q.db.QueryRowContext(ctx, createNewJson,
+		arg.ID,
+		arg.UserID,
+		arg.FileName,
+		arg.Url,
+	)
 	var i JsonFile
 	err := row.Scan(
 		&i.ID,

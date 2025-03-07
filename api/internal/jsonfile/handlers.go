@@ -1,10 +1,13 @@
 package jsonfile
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
@@ -23,7 +26,8 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	defer r.Body.Close()
 
 	// create json file
-	tempFile, err := os.CreateTemp("", "temp.json")
+	fileId := uuid.New()
+	tempFile, err := os.CreateTemp("", fileId.String())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create temp file", err)
 		return
@@ -35,10 +39,21 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// TODO: upload file to s3
+	// upload file to s3
+	_, err = cfg.S3Client.PutObject(r.Context(), &s3.PutObjectInput{
+		Bucket:      aws.String(cfg.S3Bucket),
+		Key:         aws.String(fmt.Sprintf("%s/%s", userId.String(), fileId.String())),
+		Body:        tempFile,
+		ContentType: aws.String("application/json"),
+	})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading file to s3", err)
+		return
+	}
 	file, err := cfg.Db.CreateNewJson(r.Context(), database.CreateNewJsonParams{
+		ID:       fileId,
 		UserID:   userId,
-		FileName: "file",
+		FileName: "New JSON File",
 		Url:      "",
 	})
 	if err != nil {
