@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -19,7 +22,7 @@ import (
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
-type config struct {
+type appConfig struct {
 	port               string
 	clientURL          string
 	dbUrl              string
@@ -27,6 +30,9 @@ type config struct {
 	googleClientID     string
 	googleClientSecret string
 	db                 *database.Queries
+	s3Bucket           string
+	s3Region           string
+	s3Client           *s3.Client
 }
 
 func main() {
@@ -39,6 +45,14 @@ func main() {
 	dbUrl := os.Getenv("SHARED_DB_URL")
 	baseUrl := os.Getenv("WEB_BASE_URL")
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
+	s3Bucket := os.Getenv("S3_BUCKET")
+	s3Region := os.Getenv("S3_REGION")
+
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		log.Fatalf("cannot load aws config: %v", err)
+	}
+	client := s3.NewFromConfig(awsCfg)
 
 	pgDb, err := sql.Open("postgres", dbUrl)
 	if err != nil {
@@ -46,7 +60,7 @@ func main() {
 	}
 	dbQueries := database.New(pgDb)
 
-	cfg := config{
+	cfg := appConfig{
 		port:               port,
 		clientURL:          clientURL,
 		dbUrl:              dbUrl,
@@ -54,6 +68,9 @@ func main() {
 		googleClientID:     googleClientID,
 		googleClientSecret: googleClientSecret,
 		db:                 dbQueries,
+		s3Bucket:           s3Bucket,
+		s3Region:           s3Region,
+		s3Client:           client,
 	}
 
 	authConfig := auth.AuthConfig{
@@ -68,6 +85,9 @@ func main() {
 		Db:         cfg.db,
 		WebBaseURL: cfg.webBaseURL,
 		ClientURL:  cfg.clientURL,
+		S3Bucket:   cfg.s3Bucket,
+		S3Region:   cfg.s3Region,
+		S3Client:   cfg.s3Client,
 	}
 
 	log.Printf("env vars: %v\n", cfg)
