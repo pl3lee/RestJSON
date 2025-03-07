@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
+	"github.com/pl3lee/webjson/internal/jsonfile"
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
@@ -57,10 +59,16 @@ func main() {
 
 	authConfig := auth.AuthConfig{
 		Db:                 cfg.db,
-		WebBaseURL:         baseUrl,
+		WebBaseURL:         cfg.webBaseURL,
 		GoogleClientID:     cfg.googleClientID,
 		GoogleClientSecret: cfg.googleClientSecret,
 		ClientURL:          cfg.clientURL,
+	}
+
+	jsonConfig := jsonfile.JsonConfig{
+		Db:         cfg.db,
+		WebBaseURL: cfg.webBaseURL,
+		ClientURL:  cfg.clientURL,
 	}
 
 	log.Printf("env vars: %v\n", cfg)
@@ -93,6 +101,8 @@ func main() {
 
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Post("/logout", authConfig.HandlerLogout)
+
+		r.Put("/", jsonConfig.HandlerCreateJson)
 	})
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%v", cfg.port),

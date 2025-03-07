@@ -73,12 +73,13 @@ func (cfg *AuthConfig) validateSessionToken(ctx context.Context, token string) (
 	return session, user, nil
 }
 
-// func (cfg *AuthConfig) invalidateSession(ctx context.Context, sessionId string) error {
-// 	if err := cfg.Db.InvalidateSession(ctx, sessionId); err != nil {
-// 		return fmt.Errorf("invalidateSession: cannot invalidate session: %w", err)
-// 	}
-// 	return nil
-// }
+func (cfg *AuthConfig) invalidateSession(ctx context.Context, sessionId string) error {
+	if err := cfg.Db.InvalidateSession(ctx, sessionId); err != nil {
+		return fmt.Errorf("invalidateSession: cannot invalidate session: %w", err)
+	}
+	return nil
+}
+
 //
 // func (cfg *AuthConfig) invalidateAllSessions(ctx context.Context, userId uuid.UUID) error {
 // 	if err := cfg.Db.InvalidateAllSessions(ctx, userId); err != nil {

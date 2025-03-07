@@ -109,6 +109,7 @@ func (cfg *AuthConfig) HandlerGoogleCallback(w http.ResponseWriter, r *http.Requ
 }
 
 func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
 	// Clear cookies
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -124,7 +125,7 @@ func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(userIDKey).(uuid.UUID)
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
 
 	user, err := cfg.Db.GetUserById(r.Context(), userId)
 	if err != nil {
