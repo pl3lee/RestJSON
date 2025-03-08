@@ -10,6 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type JsonFile struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	UserID    uuid.UUID
+	FileName  string
+	Url       string
+}
+
 type User struct {
 	ID         uuid.UUID
 	ProviderID string

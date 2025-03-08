@@ -7,7 +7,5 @@ type AuthConfig struct {
 	WebBaseURL         string
 	GoogleClientID     string
 	GoogleClientSecret string
-	GithubClientID     string
-	GithubClientSecret string
 	ClientURL          string
 }

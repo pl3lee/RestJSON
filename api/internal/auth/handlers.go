@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"strings"
@@ -120,11 +122,26 @@ func (cfg *AuthConfig) HandlerLogout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "can't get session token from cookie", err)
+		return
+	}
+	token := sessionCookie.Value
+	hashBytes := sha256.Sum256([]byte(token))
+	sessionId := hex.EncodeToString(hashBytes[:])
+
+	err = cfg.invalidateSession(r.Context(), sessionId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "can't invalidate session", err)
+		return
+	}
+
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
 func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(userIDKey).(uuid.UUID)
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
 
 	user, err := cfg.Db.GetUserById(r.Context(), userId)
 	if err != nil {
