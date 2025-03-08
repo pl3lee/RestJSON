@@ -34,7 +34,7 @@ export async function login() {
 export async function logout() {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/logout`, {
-			method: "POST",
+			method: "PUT",
 			credentials: "include",
 		});
 
@@ -46,14 +46,23 @@ export async function logout() {
 		console.error(e);
 	}
 }
-export const fetchHelloPublicApi = async () => {
+
+export async function createJSON() {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_PUBLIC_API_URL}`);
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfile`, {
+			method: "POST",
+			credentials: "include",
+			body: JSON.stringify({
+				hello: "world",
+				hello2: "world2",
+			}),
+		});
+
 		if (!res.ok) {
-			throw new Error("Failed to fetch hello from public");
+			throw new Error("Failed to create JSON");
 		}
 		return res.json();
 	} catch (e) {
 		console.error(e);
 	}
-};
+}

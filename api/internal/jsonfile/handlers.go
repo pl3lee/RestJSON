@@ -3,11 +3,13 @@ package jsonfile
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
@@ -25,6 +27,8 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
+	fmt.Println("Request Body:", string(body))
+
 	// create json file
 	fileId := uuid.New()
 	tempFile, err := os.CreateTemp("", fileId.String())
@@ -39,10 +43,16 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Reset the file pointer to the beginning
+	if _, err := tempFile.Seek(0, 0); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot seek temp file", err)
+		return
+	}
+
 	// upload file to s3
 	_, err = cfg.S3Client.PutObject(r.Context(), &s3.PutObjectInput{
 		Bucket:      aws.String(cfg.S3Bucket),
-		Key:         aws.String(fmt.Sprintf("%s/%s", userId.String(), fileId.String())),
+		Key:         aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
 		Body:        tempFile,
 		ContentType: aws.String("application/json"),
 	})
@@ -54,11 +64,18 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 		ID:       fileId,
 		UserID:   userId,
 		FileName: "New JSON File",
-		Url:      fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s/%s", cfg.S3Bucket, cfg.S3Region, userId.String(), fileId.String()),
+		Url:      fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s/%s.json", cfg.S3Bucket, cfg.S3Region, userId.String(), fileId.String()),
 	})
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "cannot create new json", err)
 		return
 	}
 	utils.RespondWithJSON(w, http.StatusOK, file)
+}
+
+func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileId := chi.URLParam(r, "fildId")
+	log.Println(userId)
+	log.Println(fileId)
 }

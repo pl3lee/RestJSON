@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import { createJSON } from "@/lib/api";
 
 export function App() {
 	const navigate = useNavigate();
@@ -14,6 +15,9 @@ export function App() {
 	return (
 		<div className="flex flex-col gap-5">
 			Welcome {user.name}!
+			<Button type="button" onClick={() => createJSON()}>
+				Create JSON
+			</Button>
 			<Button type="button" onClick={() => logout()}>
 				Logout
 			</Button>
