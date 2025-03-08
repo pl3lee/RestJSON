@@ -62,3 +62,46 @@ func (q *Queries) GetJsonFile(ctx context.Context, id uuid.UUID) (JsonFile, erro
 	)
 	return i, err
 }
+
+const getJsonFiles = `-- name: GetJsonFiles :many
+SELECT id, created_at, updated_at, user_id, file_name, url
+FROM json_files
+WHERE user_id=$1
+LIMIT $2 OFFSET $3
+`
+
+type GetJsonFilesParams struct {
+	UserID uuid.UUID
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetJsonFiles(ctx context.Context, arg GetJsonFilesParams) ([]JsonFile, error) {
+	rows, err := q.db.QueryContext(ctx, getJsonFiles, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []JsonFile
+	for rows.Next() {
+		var i JsonFile
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.FileName,
+			&i.Url,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -146,6 +146,7 @@ func main() {
 		r.Put("/logout", authConfig.HandlerLogout)
 		r.Post("/jsonfile", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfile/{fileId}", jsonConfig.HandlerGetJson)
+		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
 	})
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%v", cfg.port),

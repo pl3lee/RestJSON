@@ -1,41 +1,43 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { createJSON, getJSON } from "@/lib/api";
-import { useState } from "react";
+import { createJSON, getJSONFiles } from "@/lib/api";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 
 export function App() {
 	const navigate = useNavigate();
-	const [fileId, setFileId] = useState<string>("");
-	const { user, isLoading, logout, isLoggedIn } = useAuth();
-	if (isLoading) {
+	const { user, isLoading: isLoadingUser, logout, isLoggedIn } = useAuth();
+	if (isLoadingUser) {
 		return <div>Loading...</div>;
 	}
 	if (!isLoggedIn) {
 		navigate("/auth");
+		return null;
 	}
+
+	const { data: jsonFiles, isLoading: isLoadingFiles } = useQuery({
+		queryKey: ["jsonfiles"],
+		queryFn: getJSONFiles,
+		enabled: !isLoadingUser && isLoggedIn,
+	});
 	return (
 		<div className="flex flex-col gap-5">
 			Welcome {user.name}!
 			<Button type="button" onClick={() => createJSON()}>
 				Create JSON
 			</Button>
-			<form
-				onSubmit={async (e) => {
-					e.preventDefault();
-					const jsonData = await getJSON(fileId);
-					console.log(jsonData);
-				}}
-			>
-				<Input
-					value={fileId}
-					onChange={(e) => {
-						setFileId(e.target.value);
-					}}
-				/>
-				<Button type="submit">Fetch json</Button>
-			</form>
+			<div className="flex flex-col gap-2">
+				{!isLoadingFiles &&
+					jsonFiles?.map((file: { ID: string; FileName: string }) => (
+						<Button
+							key={file.ID}
+							type="button"
+							onClick={() => navigate(`/app/jsonfile/${file.ID}`)}
+						>
+							{file.FileName}
+						</Button>
+					))}
+			</div>
 			<Button type="button" onClick={() => logout()}>
 				Logout
 			</Button>
