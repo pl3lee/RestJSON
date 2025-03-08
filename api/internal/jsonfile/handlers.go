@@ -54,7 +54,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 		ID:       fileId,
 		UserID:   userId,
 		FileName: "New JSON File",
-		Url:      "",
+		Url:      fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s/%s", cfg.S3Bucket, cfg.S3Region, userId.String(), fileId.String()),
 	})
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "cannot create new json", err)

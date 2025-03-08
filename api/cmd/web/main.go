@@ -41,12 +41,36 @@ func main() {
 		log.Printf("Cannot read .env file, this is normal when running in a docker container: %v\n", err)
 	}
 	port := os.Getenv("WEB_PORT")
+	if port == "" {
+		log.Fatal("WEB_PORT not set")
+	}
 	clientURL := os.Getenv("SHARED_CLIENT_URL")
+	if clientURL == "" {
+		log.Fatal("SHARED_CLIENT_URL not set")
+	}
 	dbUrl := os.Getenv("SHARED_DB_URL")
+	if dbUrl == "" {
+		log.Fatal("SHARED_DB_URL not set")
+	}
 	baseUrl := os.Getenv("WEB_BASE_URL")
+	if baseUrl == "" {
+		log.Fatal("WEB_BASE_URL not set")
+	}
 	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
-	s3Bucket := os.Getenv("S3_BUCKET")
-	s3Region := os.Getenv("S3_REGION")
+	if googleClientID == "" {
+		log.Fatal("WEB_GOOGLE_CLIENT_ID not set")
+	}
+	if googleClientSecret == "" {
+		log.Fatal("WEB_GOOGLE_CLIENT_SECRET not set")
+	}
+	s3Bucket := os.Getenv("SHARED_S3_BUCKET")
+	if s3Bucket == "" {
+		log.Fatal("SHARED_S3_BUCKET not set")
+	}
+	s3Region := os.Getenv("SHARED_S3_REGION")
+	if s3Region == "" {
+		log.Fatal("SHARED_S3_REGION not set")
+	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
@@ -119,9 +143,8 @@ func main() {
 		r.Use(authConfig.AuthMiddleware)
 
 		r.Get("/me", authConfig.HandlerGetMe)
-		r.Post("/logout", authConfig.HandlerLogout)
-
-		r.Put("/", jsonConfig.HandlerCreateJson)
+		r.Put("/logout", authConfig.HandlerLogout)
+		r.Post("/jsonfile", jsonConfig.HandlerCreateJson)
 	})
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%v", cfg.port),
