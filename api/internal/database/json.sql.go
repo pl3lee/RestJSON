@@ -42,3 +42,23 @@ func (q *Queries) CreateNewJson(ctx context.Context, arg CreateNewJsonParams) (J
 	)
 	return i, err
 }
+
+const getJsonFile = `-- name: GetJsonFile :one
+SELECT id, created_at, updated_at, user_id, file_name, url
+FROM json_files
+WHERE id=$1
+`
+
+func (q *Queries) GetJsonFile(ctx context.Context, id uuid.UUID) (JsonFile, error) {
+	row := q.db.QueryRowContext(ctx, getJsonFile, id)
+	var i JsonFile
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.FileName,
+		&i.Url,
+	)
+	return i, err
+}

@@ -66,3 +66,22 @@ export async function createJSON() {
 		console.error(e);
 	}
 }
+
+export async function getJSON(fileId: string) {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfile/${fileId}`,
+			{
+				method: "GET",
+				credentials: "include",
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to get JSON");
+		}
+		return res.json();
+	} catch (e) {
+		console.error(e);
+	}
+}

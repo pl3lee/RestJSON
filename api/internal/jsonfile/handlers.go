@@ -3,7 +3,6 @@ package jsonfile
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 
@@ -75,7 +74,43 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 
 func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	fileId := chi.URLParam(r, "fildId")
-	log.Println(userId)
-	log.Println(fileId)
+	fileIdStr := chi.URLParam(r, "fileId")
+	fileId, err := uuid.Parse(fileIdStr)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "file id not valid", err)
+		return
+	}
+
+	jsonFileMetadata, err := cfg.Db.GetJsonFile(r.Context(), fileId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file does not exist", err)
+		return
+	}
+
+	if jsonFileMetadata.UserID != userId {
+		utils.RespondWithError(w, http.StatusUnauthorized, "file does not belong to user", nil)
+		return
+	}
+
+	s3Params := &s3.GetObjectInput{
+		Bucket: aws.String(cfg.S3Bucket),
+		Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
+	}
+
+	jsonFile, err := cfg.S3Client.GetObject(r.Context(), s3Params)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get json file from s3", err)
+		return
+	}
+	defer jsonFile.Body.Close()
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	// copy the content from the S3 object to the response writer
+	if _, err := io.Copy(w, jsonFile.Body); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error writing json file to response", err)
+		return
+	}
+
 }
