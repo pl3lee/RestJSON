@@ -116,23 +116,8 @@ func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
 
 func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	limitStr := r.URL.Query().Get("limit")
-	offsetStr := r.URL.Query().Get("offset")
 
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil || limit <= 0 {
-		limit = 10
-	}
-	offset, err := strconv.Atoi(offsetStr)
-	if err != nil || offset < 0 {
-		offset = 0
-	}
-
-	jsonFiles, err := cfg.Db.GetJsonFiles(r.Context(), database.GetJsonFilesParams{
-		UserID: userId,
-		Limit:  int32(limit),
-		Offset: int32(offset),
-	})
+	jsonFiles, err := cfg.Db.GetJsonFiles(r.Context(), userId)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error getting json files", err)
 		return

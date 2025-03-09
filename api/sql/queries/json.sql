@@ -11,6 +11,5 @@ WHERE id=$1;
 -- name: GetJsonFiles :many
 SELECT *
 FROM json_files
-WHERE user_id=$1
-LIMIT $2 OFFSET $3;
+WHERE user_id=$1;
 
