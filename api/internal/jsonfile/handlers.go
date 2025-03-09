@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
