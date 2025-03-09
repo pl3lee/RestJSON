@@ -11,8 +11,13 @@ export const fetchHelloWebApi = async () => {
 		console.error(e);
 	}
 };
+export type User = {
+	email: string;
+	name: string;
+	id: string;
+};
 
-export async function fetchMe() {
+export async function fetchMe(): Promise<User | undefined> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
 			credentials: "include",
@@ -21,9 +26,11 @@ export async function fetchMe() {
 		if (!res.ok) {
 			throw new Error("Failed to fetch user information");
 		}
-		return res.json();
+		const user: User = await res.json();
+		return user;
 	} catch (e) {
 		console.error(e);
+		return undefined;
 	}
 }
 
@@ -79,6 +86,22 @@ export async function getJSON(fileId: string) {
 
 		if (!res.ok) {
 			throw new Error("Failed to get JSON");
+		}
+		return res.json();
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+export async function getJSONFiles() {
+	try {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfiles`, {
+			method: "GET",
+			credentials: "include",
+		});
+
+		if (!res.ok) {
+			throw new Error("Failed to get JSON files");
 		}
 		return res.json();
 	} catch (e) {

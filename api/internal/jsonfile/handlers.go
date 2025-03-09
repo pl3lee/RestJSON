@@ -2,10 +2,6 @@ package jsonfile
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
@@ -13,6 +9,9 @@ import (
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
+	"io"
+	"net/http"
+	"os"
 )
 
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
@@ -112,5 +111,15 @@ func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error writing json file to response", err)
 		return
 	}
+}
 
+func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+
+	jsonFiles, err := cfg.Db.GetJsonFiles(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting json files", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, jsonFiles)
 }
