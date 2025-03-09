@@ -2,10 +2,6 @@ package jsonfile
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"strconv"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
@@ -13,6 +9,10 @@ import (
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
