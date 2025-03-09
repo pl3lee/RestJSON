@@ -7,6 +7,7 @@ import { ThemeProvider } from "./components/theme-provider.tsx";
 import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
 import Home from "./pages/Home.tsx";
+import { AppLayout } from "./layouts/AppLayout.tsx";
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
 					<Routes>
 						<Route path="/" element={<Home />} />
 						<Route path="/auth" element={<Auth />} />
-						<Route path="/app" element={<App />} />
+						<Route element={<AppLayout />}>
+							<Route path="/app" element={<App />} />
+						</Route>
 					</Routes>
 				</BrowserRouter>
 			</ThemeProvider>
