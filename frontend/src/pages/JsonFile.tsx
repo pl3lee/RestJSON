@@ -1,7 +1,7 @@
 import { getJSON } from "@/lib/api";
+import Editor from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
-import Editor from "@monaco-editor/react";
 
 export function JsonFile() {
 	const { fileId } = useParams();
