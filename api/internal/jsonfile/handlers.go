@@ -1,17 +1,18 @@
 package jsonfile
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
-	"io"
-	"net/http"
-	"os"
 )
 
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
@@ -73,23 +74,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 
 func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	fileIdStr := chi.URLParam(r, "fileId")
-	fileId, err := uuid.Parse(fileIdStr)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "file id not valid", err)
-		return
-	}
-
-	jsonFileMetadata, err := cfg.Db.GetJsonFile(r.Context(), fileId)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "json file does not exist", err)
-		return
-	}
-
-	if jsonFileMetadata.UserID != userId {
-		utils.RespondWithError(w, http.StatusUnauthorized, "file does not belong to user", nil)
-		return
-	}
+	fileId := r.Context().Value(FileIDContextKey).(uuid.UUID)
 
 	s3Params := &s3.GetObjectInput{
 		Bucket: aws.String(cfg.S3Bucket),
@@ -122,4 +107,35 @@ func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	utils.RespondWithJSON(w, http.StatusOK, jsonFiles)
+}
+
+type RenameRequest struct {
+	FileName string `json:"fileName"`
+}
+
+func (cfg *JsonConfig) HandlerRenameJsonFile(w http.ResponseWriter, r *http.Request) {
+	fileId := r.Context().Value(FileIDContextKey).(uuid.UUID)
+
+	var renameReq RenameRequest
+	if err := json.NewDecoder(r.Body).Decode(&renameReq); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+	defer r.Body.Close()
+
+	if renameReq.FileName == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "file name cannot be empty", nil)
+		return
+	}
+
+	newJsonFile, err := cfg.Db.RenameJsonFile(r.Context(), database.RenameJsonFileParams{
+		ID:       fileId,
+		FileName: renameReq.FileName,
+	})
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error renaming json file", err)
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, newJsonFile)
 }

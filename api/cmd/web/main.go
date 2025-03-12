@@ -144,9 +144,16 @@ func main() {
 
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)
+
 		r.Post("/jsonfile", jsonConfig.HandlerCreateJson)
-		r.Get("/jsonfile/{fileId}", jsonConfig.HandlerGetJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
+
+		r.Group(func(r chi.Router) {
+			r.Use(jsonConfig.JsonFileMiddleware)
+
+			r.Get("/jsonfile/{fileId}", jsonConfig.HandlerGetJson)
+			r.Patch("/jsonfile/{fileId}", jsonConfig.HandlerRenameJsonFile)
+		})
 	})
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%v", cfg.port),
