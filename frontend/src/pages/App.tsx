@@ -1,15 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { createJSON, getJSONFiles } from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { getAllJSONMetadata } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 
 export function App() {
 	const navigate = useNavigate();
+	const [newFileName, setNewFileName] = useState("");
 	const { user, isLoading: isLoadingUser, logout, isLoggedIn } = useAuth();
 	const { data: jsonFiles, isLoading: isLoadingFiles } = useQuery({
 		queryKey: ["jsonfiles"],
-		queryFn: getJSONFiles,
+		queryFn: getAllJSONMetadata,
 		enabled: !!user,
 	});
 	if (isLoadingUser) {
@@ -22,19 +25,24 @@ export function App() {
 
 	return (
 		<div className="flex flex-col gap-5">
-			Welcome {user?.name}!
-			<Button type="button" onClick={() => createJSON()}>
-				Create JSON
-			</Button>
+			<form>
+				<Input
+					value={newFileName}
+					onChange={(e) => setNewFileName(e.target.value)}
+				/>
+				<Button type="button" onClick={() => console.log("hello")}>
+					Create JSON
+				</Button>
+			</form>
 			<div className="flex flex-col gap-2">
 				{!isLoadingFiles &&
-					jsonFiles?.map((file: { ID: string; FileName: string }) => (
+					jsonFiles?.map((file) => (
 						<Button
-							key={file.ID}
+							key={file.id}
 							type="button"
-							onClick={() => navigate(`/app/jsonfile/${file.ID}`)}
+							onClick={() => navigate(`/app/jsonfile/${file.id}`)}
 						>
-							{file.FileName}
+							{file.fileName}
 						</Button>
 					))}
 			</div>

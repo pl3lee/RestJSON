@@ -7,29 +7,45 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
+type CreateJsonRequest struct {
+	FileName string `json:"fileName"`
+}
+
+type RenameJsonRequest struct {
+	FileName string `json:"fileName"`
+}
+
+type JsonMetadataResponse struct {
+	ID       uuid.UUID `json:"id"`
+	UserID   uuid.UUID `json:"userId"`
+	FileName string    `json:"fileName"`
+}
+
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 
-	// read json from request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "cannot read request body", err)
+	var createReq CreateJsonRequest
+	if err := json.NewDecoder(r.Body).Decode(&createReq); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
 		return
 	}
 	defer r.Body.Close()
 
-	fmt.Println("Request Body:", string(body))
+	if createReq.FileName == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "file name cannot be empty", nil)
+		return
+	}
 
 	// create json file
 	fileId := uuid.New()
+
+	// temp file with empty JSON content
 	tempFile, err := os.CreateTemp("", fileId.String())
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create temp file", err)
@@ -37,7 +53,9 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	}
 	defer os.Remove(tempFile.Name())
 	defer tempFile.Close()
-	if _, err := tempFile.Write(body); err != nil {
+
+	// write empty JSON content
+	if _, err := tempFile.Write([]byte("{}")); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot write to temp file", err)
 		return
 	}
@@ -49,13 +67,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	}
 
 	// upload file to s3
-	_, err = cfg.S3Client.PutObject(r.Context(), &s3.PutObjectInput{
-		Bucket:      aws.String(cfg.S3Bucket),
-		Key:         aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
-		Body:        tempFile,
-		ContentType: aws.String("application/json"),
-	})
-	if err != nil {
+	if err := cfg.uploadFileToS3(r.Context(), userId, fileId, tempFile); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading file to s3", err)
 		return
 	}
@@ -72,28 +84,84 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	utils.RespondWithJSON(w, http.StatusOK, file)
 }
 
-func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
+func (cfg *JsonConfig) HandlerUpdateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	fileId := r.Context().Value(FileIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
 
-	s3Params := &s3.GetObjectInput{
-		Bucket: aws.String(cfg.S3Bucket),
-		Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
+	// read json from request body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "cannot read request body", err)
+		return
+	}
+	defer r.Body.Close()
+
+	fmt.Println("Update JSON request body:", string(body))
+
+	// create json file to replace on s3
+	tempFile, err := os.CreateTemp("", fileMetadata.ID.String())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create temp file", err)
+		return
+	}
+	defer os.Remove(tempFile.Name())
+	defer tempFile.Close()
+	// copy request body to tempfile
+	if _, err := tempFile.Write(body); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot write to temp file", err)
+		return
 	}
 
-	jsonFile, err := cfg.S3Client.GetObject(r.Context(), s3Params)
+	// Reset the file pointer to the beginning
+	if _, err := tempFile.Seek(0, 0); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot seek temp file", err)
+		return
+	}
+
+	// upload file to s3
+	if err := cfg.uploadFileToS3(r.Context(), userId, fileMetadata.ID, tempFile); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading file to s3", err)
+		return
+	}
+
+	fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get updated json file from s3", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(fileContents); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error writing response", err)
+		return
+	}
+}
+
+func (cfg *JsonConfig) HandlerGetJsonMetadata(w http.ResponseWriter, r *http.Request) {
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+
+	response := JsonMetadataResponse{
+		ID:       fileMetadata.ID,
+		UserID:   fileMetadata.UserID,
+		FileName: fileMetadata.FileName,
+	}
+	utils.RespondWithJSON(w, http.StatusOK, response)
+
+}
+
+func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+
+	fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get json file from s3", err)
 		return
 	}
-	defer jsonFile.Body.Close()
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	// copy the content from the S3 object to the response writer
-	if _, err := io.Copy(w, jsonFile.Body); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error writing json file to response", err)
+	if _, err := w.Write(fileContents); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error writing response", err)
 		return
 	}
 }
@@ -106,17 +174,24 @@ func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Reques
 		utils.RespondWithError(w, http.StatusInternalServerError, "error getting json files", err)
 		return
 	}
-	utils.RespondWithJSON(w, http.StatusOK, jsonFiles)
-}
 
-type RenameRequest struct {
-	FileName string `json:"fileName"`
+	var jsonFilesResponse []JsonMetadataResponse
+	for _, file := range jsonFiles {
+		fileMetadata := JsonMetadataResponse{
+			ID:       file.ID,
+			UserID:   file.UserID,
+			FileName: file.FileName,
+		}
+		jsonFilesResponse = append(jsonFilesResponse, fileMetadata)
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, jsonFilesResponse)
 }
 
 func (cfg *JsonConfig) HandlerRenameJsonFile(w http.ResponseWriter, r *http.Request) {
-	fileId := r.Context().Value(FileIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
 
-	var renameReq RenameRequest
+	var renameReq RenameJsonRequest
 	if err := json.NewDecoder(r.Body).Decode(&renameReq); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
 		return
@@ -128,8 +203,8 @@ func (cfg *JsonConfig) HandlerRenameJsonFile(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	newJsonFile, err := cfg.Db.RenameJsonFile(r.Context(), database.RenameJsonFileParams{
-		ID:       fileId,
+	renamedJsonFile, err := cfg.Db.RenameJsonFile(r.Context(), database.RenameJsonFileParams{
+		ID:       fileMetadata.ID,
 		FileName: renameReq.FileName,
 	})
 	if err != nil {
@@ -137,5 +212,11 @@ func (cfg *JsonConfig) HandlerRenameJsonFile(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, newJsonFile)
+	response := JsonMetadataResponse{
+		ID:       renamedJsonFile.ID,
+		UserID:   renamedJsonFile.UserID,
+		FileName: renamedJsonFile.FileName,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, response)
 }

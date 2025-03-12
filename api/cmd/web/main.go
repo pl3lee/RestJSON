@@ -145,14 +145,16 @@ func main() {
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)
 
-		r.Post("/jsonfile", jsonConfig.HandlerCreateJson)
+		r.Post("/jsonfiles", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
 
-			r.Get("/jsonfile/{fileId}", jsonConfig.HandlerGetJson)
-			r.Patch("/jsonfile/{fileId}", jsonConfig.HandlerRenameJsonFile)
+			r.Get("/jsonfiles/{fileId}", jsonConfig.HandlerGetJson)
+			r.Get("/jsonfiles/{fileId}/metadata", jsonConfig.HandlerGetJsonMetadata)
+			r.Patch("/jsonfiles/{fileId}", jsonConfig.HandlerRenameJsonFile)
+			r.Put("/jsonfiles/{fileID}", jsonConfig.HandlerUpdateJson)
 		})
 	})
 	srv := &http.Server{

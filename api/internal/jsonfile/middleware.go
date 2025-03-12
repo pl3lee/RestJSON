@@ -12,7 +12,7 @@ import (
 
 type contextKey string
 
-const FileIDContextKey contextKey = "file_id"
+const FileMetadataContextKey contextKey = "fileId"
 
 // JsonFileMiddleware ensures that the user has access to the requested JSON file.
 // This middleware depends on the authMiddleware to run first, which sets the user ID in the context.
@@ -39,7 +39,7 @@ func (cfg *JsonConfig) JsonFileMiddleware(next http.Handler) http.Handler {
 
 		// valid file id and file belongs to user, proceed with request
 		// add file ID to context
-		ctx := context.WithValue(r.Context(), FileIDContextKey, fileId)
+		ctx := context.WithValue(r.Context(), FileMetadataContextKey, jsonFileMetadata)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

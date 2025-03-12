@@ -1,15 +1,14 @@
 import { Input } from "@/components/ui/input";
-import { getJSON } from "@/lib/api";
+import { getJSONFile } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { useParams } from "react-router";
 
 export function JsonFile() {
 	const { fileId } = useParams();
 	const { data: jsonFile, isLoading: jsonFileLoading } = useQuery({
 		queryKey: [`jsonfile-${fileId}`],
-		queryFn: () => getJSON(fileId!),
+		queryFn: async () => await getJSONFile(fileId!),
 		enabled: !!fileId,
 	});
 	console.log(jsonFile);
