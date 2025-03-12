@@ -135,10 +135,13 @@ export async function getAllJSONMetadata(): Promise<
 	}
 }
 
-export async function renameJSONFile(
-	name: string,
-	fileId: string,
-): Promise<FileMetadata | undefined> {
+export async function renameJSONFile({
+	name,
+	fileId,
+}: {
+	name: string;
+	fileId: string;
+}): Promise<FileMetadata | undefined> {
 	try {
 		const res = await fetch(
 			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,

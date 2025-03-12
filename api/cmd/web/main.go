@@ -125,7 +125,7 @@ func main() {
 
 	corsWeb := cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.clientURL},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,

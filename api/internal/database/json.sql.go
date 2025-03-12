@@ -101,7 +101,7 @@ func (q *Queries) GetJsonFiles(ctx context.Context, userID uuid.UUID) ([]JsonFil
 
 const renameJsonFile = `-- name: RenameJsonFile :one
 UPDATE json_files
-SET file_name=$2, modified_at=NOW()
+SET file_name=$2, updated_at=NOW()
 WHERE id=$1
 RETURNING id, created_at, updated_at, user_id, file_name, url
 `

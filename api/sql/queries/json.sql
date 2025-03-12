@@ -15,6 +15,6 @@ WHERE user_id=$1;
 
 -- name: RenameJsonFile :one
 UPDATE json_files
-SET file_name=$2, modified_at=NOW()
+SET file_name=$2, updated_at=NOW()
 WHERE id=$1
 RETURNING *;
