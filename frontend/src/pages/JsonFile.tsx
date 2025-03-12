@@ -1,5 +1,6 @@
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -11,12 +12,14 @@ import { Input } from "@/components/ui/input";
 import { getJSONFile, getJSONMetadata, renameJSONFile } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 
 export function JsonFile() {
 	const { fileId } = useParams();
 	const queryClient = useQueryClient();
+	const { theme } = useTheme();
 	const { data: jsonFile, isLoading: jsonFileLoading } = useQuery({
 		queryKey: [`jsonfile-${fileId}`],
 		queryFn: async () => await getJSONFile(fileId!),
@@ -52,35 +55,46 @@ export function JsonFile() {
 	const jsonString = jsonFile ? JSON.stringify(jsonFile, null, 2) : "";
 
 	return (
-		<div className="container mx-auto p-4">
+		<div className="flex flex-col gap-2">
 			<Card>
-				<CardHeader>
+				<CardHeader className="flex flex-row items-center gap-2">
+					<Button onClick={() => setIsDialogOpen(true)}>
+						<Pencil />
+					</Button>
 					<CardTitle>
 						<h1>{jsonMetadata?.fileName}</h1>
 					</CardTitle>
-					<Button onClick={() => setIsDialogOpen(true)}>Rename</Button>
 				</CardHeader>
-				<CardContent>
-					<Editor
-						height="90vh"
-						defaultLanguage="json"
-						defaultValue={jsonString}
-					/>
-				</CardContent>
+				<Editor
+					height="90vh"
+					defaultLanguage="json"
+					defaultValue={jsonString}
+					theme={theme === "light" ? theme : "vs-dark"}
+				/>
 			</Card>
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Rename File</DialogTitle>
 					</DialogHeader>
-					<Input
-						placeholder="New file name"
-						value={newFileName}
-						onChange={(e) => setNewFileName(e.target.value)}
-						className="w-full"
-					/>
+					<form
+						id="renameForm"
+						onSubmit={(e) => {
+							e.preventDefault();
+							handleRename();
+						}}
+					>
+						<Input
+							placeholder="New file name"
+							value={newFileName}
+							onChange={(e) => setNewFileName(e.target.value)}
+							className="w-full"
+						/>
+					</form>
 					<DialogFooter>
-						<Button onClick={handleRename}>Save</Button>
+						<Button type="submit" form="renameForm">
+							Save
+						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
