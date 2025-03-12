@@ -13,7 +13,7 @@ export function App() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [newFileName, setNewFileName] = useState("");
-	const { user, isLoading: isLoadingUser, logout, isLoggedIn } = useAuth();
+	const { user, isLoading: isLoadingUser, isLoggedIn } = useAuth();
 	const { data: jsonFiles, isLoading: isLoadingFiles } = useQuery({
 		queryKey: ["jsonfiles"],
 		queryFn: getAllJSONMetadata,
@@ -93,9 +93,6 @@ export function App() {
 								</Card>
 							)))}
 			</div>
-			<Button type="button" onClick={() => logout()}>
-				Logout
-			</Button>
 		</div>
 	);
 }
