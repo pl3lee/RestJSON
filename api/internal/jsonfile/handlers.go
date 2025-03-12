@@ -11,6 +11,7 @@ import (
 	"github.com/pl3lee/webjson/internal/auth"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
+	"time"
 )
 
 type CreateJsonRequest struct {
@@ -22,9 +23,10 @@ type RenameJsonRequest struct {
 }
 
 type JsonMetadataResponse struct {
-	ID       uuid.UUID `json:"id"`
-	UserID   uuid.UUID `json:"userId"`
-	FileName string    `json:"fileName"`
+	ID         uuid.UUID `json:"id"`
+	UserID     uuid.UUID `json:"userId"`
+	FileName   string    `json:"fileName"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +76,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	file, err := cfg.Db.CreateNewJson(r.Context(), database.CreateNewJsonParams{
 		ID:       fileId,
 		UserID:   userId,
-		FileName: "New JSON File",
+		FileName: createReq.FileName,
 		Url:      fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s/%s.json", cfg.S3Bucket, cfg.S3Region, userId.String(), fileId.String()),
 	})
 	if err != nil {
@@ -178,9 +180,10 @@ func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Reques
 	var jsonFilesResponse []JsonMetadataResponse
 	for _, file := range jsonFiles {
 		fileMetadata := JsonMetadataResponse{
-			ID:       file.ID,
-			UserID:   file.UserID,
-			FileName: file.FileName,
+			ID:         file.ID,
+			UserID:     file.UserID,
+			FileName:   file.FileName,
+			ModifiedAt: file.UpdatedAt,
 		}
 		jsonFilesResponse = append(jsonFilesResponse, fileMetadata)
 	}

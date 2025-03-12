@@ -8,6 +8,7 @@ export type FileMetadata = {
 	id: string;
 	userId: string;
 	fileName: string;
+	modifiedAt: string;
 };
 
 export async function fetchMe(): Promise<User | undefined> {
