@@ -98,3 +98,29 @@ func (q *Queries) GetJsonFiles(ctx context.Context, userID uuid.UUID) ([]JsonFil
 	}
 	return items, nil
 }
+
+const renameJsonFile = `-- name: RenameJsonFile :one
+UPDATE json_files
+SET file_name=$2, updated_at=NOW()
+WHERE id=$1
+RETURNING id, created_at, updated_at, user_id, file_name, url
+`
+
+type RenameJsonFileParams struct {
+	ID       uuid.UUID
+	FileName string
+}
+
+func (q *Queries) RenameJsonFile(ctx context.Context, arg RenameJsonFileParams) (JsonFile, error) {
+	row := q.db.QueryRowContext(ctx, renameJsonFile, arg.ID, arg.FileName)
+	var i JsonFile
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.FileName,
+		&i.Url,
+	)
+	return i, err
+}

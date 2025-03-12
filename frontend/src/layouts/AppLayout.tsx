@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, User } from "lucide-react";
-import { Outlet, useNavigate } from "react-router";
+import { Link, Outlet, useNavigate } from "react-router";
 
 export function AppLayout() {
 	const navigate = useNavigate();
@@ -24,7 +24,9 @@ export function AppLayout() {
 		<div className="flex flex-col h-screen">
 			<header className="flex items-center justify-between border-b bg-background px-4 py-3 shadow-sm">
 				<div className="flex items-center">
-					<h1 className="text-xl font-bold">Web JSON</h1>
+					<h1 className="text-xl font-bold">
+						<Link to="/app">Web JSON</Link>
+					</h1>
 				</div>
 				<div className="flex items-center gap-4">
 					<ModeToggle />
@@ -63,7 +65,7 @@ export function AppLayout() {
 						<DropdownMenuContent align="end" className="w-56">
 							<DropdownMenuLabel>My Account</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem onClick={() => logout()}>
+							<DropdownMenuItem onClick={() => logout}>
 								<LogOut className="mr-2 h-4 w-4" />
 								<span>Log out</span>
 							</DropdownMenuItem>

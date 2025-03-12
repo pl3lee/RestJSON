@@ -12,6 +12,12 @@ import (
 	"github.com/pl3lee/webjson/internal/utils"
 )
 
+type UserResponse struct {
+	ID    uuid.UUID `json:"id"`
+	Email string    `json:"email"`
+	Name  string    `json:"name"`
+}
+
 func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	url, state, err := cfg.getAuthCodeURL()
 	if err != nil {
@@ -149,9 +155,9 @@ func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, map[string]any{
-		"id":    user.ID,
-		"email": user.Email,
-		"name":  user.Name,
+	utils.RespondWithJSON(w, http.StatusOK, UserResponse{
+		ID:    user.ID,
+		Email: user.Email,
+		Name:  user.Name,
 	})
 }

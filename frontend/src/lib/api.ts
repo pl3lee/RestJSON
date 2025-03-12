@@ -1,20 +1,14 @@
-export const fetchHelloWebApi = async () => {
-	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}`, {
-			credentials: "include",
-		});
-		if (!res.ok) {
-			throw new Error("Failed to fetch hello from web");
-		}
-		return res.json();
-	} catch (e) {
-		console.error(e);
-	}
-};
 export type User = {
+	id: string;
 	email: string;
 	name: string;
+};
+
+export type FileMetadata = {
 	id: string;
+	userId: string;
+	fileName: string;
+	modifiedAt: string;
 };
 
 export async function fetchMe(): Promise<User | undefined> {
@@ -34,11 +28,11 @@ export async function fetchMe(): Promise<User | undefined> {
 	}
 }
 
-export async function login() {
+export function login(): void {
 	window.location.href = `${import.meta.env.VITE_WEB_API_URL}/auth/google/login`;
 }
 
-export async function logout() {
+export async function logout(): Promise<void> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/logout`, {
 			method: "PUT",
@@ -54,30 +48,33 @@ export async function logout() {
 	}
 }
 
-export async function createJSON() {
+export async function createJSONFile(
+	fileName: string,
+): Promise<FileMetadata | undefined> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfile`, {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfiles`, {
 			method: "POST",
 			credentials: "include",
 			body: JSON.stringify({
-				hello: "world",
-				hello2: "world2",
+				fileName,
 			}),
 		});
 
 		if (!res.ok) {
 			throw new Error("Failed to create JSON");
 		}
-		return res.json();
+		const data: FileMetadata = await res.json();
+		return data;
 	} catch (e) {
 		console.error(e);
+		return undefined;
 	}
 }
 
-export async function getJSON(fileId: string) {
+export async function getJSONFile<T>(fileId: string): Promise<T | undefined> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfile/${fileId}`,
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
 			{
 				method: "GET",
 				credentials: "include",
@@ -87,13 +84,40 @@ export async function getJSON(fileId: string) {
 		if (!res.ok) {
 			throw new Error("Failed to get JSON");
 		}
-		return res.json();
+		const data: T = await res.json();
+		return data;
 	} catch (e) {
 		console.error(e);
+		return undefined;
 	}
 }
 
-export async function getJSONFiles() {
+export async function getJSONMetadata(
+	fileId: string,
+): Promise<FileMetadata | undefined> {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}/metadata`,
+			{
+				method: "GET",
+				credentials: "include",
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to get JSON metadata");
+		}
+		const data: FileMetadata = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
+	}
+}
+
+export async function getAllJSONMetadata(): Promise<
+	FileMetadata[] | undefined
+> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfiles`, {
 			method: "GET",
@@ -101,10 +125,67 @@ export async function getJSONFiles() {
 		});
 
 		if (!res.ok) {
-			throw new Error("Failed to get JSON files");
+			throw new Error("Failed to get all JSON files");
 		}
-		return res.json();
+		const data: FileMetadata[] = await res.json();
+		return data;
 	} catch (e) {
 		console.error(e);
+		return undefined;
+	}
+}
+
+export async function renameJSONFile({
+	name,
+	fileId,
+}: {
+	name: string;
+	fileId: string;
+}): Promise<FileMetadata | undefined> {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			{
+				method: "PATCH",
+				credentials: "include",
+				body: JSON.stringify({
+					fileName: name,
+				}),
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to rename JSON");
+		}
+		const data: FileMetadata = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
+	}
+}
+
+export async function updateJSONFile<T>(
+	fileId: string,
+	contents: T,
+): Promise<T | undefined> {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			{
+				method: "PUT",
+				credentials: "include",
+				body: JSON.stringify(contents),
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to get JSON");
+		}
+		const data: T = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
 	}
 }

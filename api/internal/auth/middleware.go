@@ -9,7 +9,7 @@ import (
 
 type contextKey string
 
-const UserIDContextKey contextKey = "user_id"
+const UserIDContextKey contextKey = "userId"
 
 func (cfg *AuthConfig) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

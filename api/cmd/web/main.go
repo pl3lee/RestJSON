@@ -125,7 +125,7 @@ func main() {
 
 	corsWeb := cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.clientURL},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -144,9 +144,18 @@ func main() {
 
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)
-		r.Post("/jsonfile", jsonConfig.HandlerCreateJson)
-		r.Get("/jsonfile/{fileId}", jsonConfig.HandlerGetJson)
+
+		r.Post("/jsonfiles", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
+
+		r.Group(func(r chi.Router) {
+			r.Use(jsonConfig.JsonFileMiddleware)
+
+			r.Get("/jsonfiles/{fileId}", jsonConfig.HandlerGetJson)
+			r.Get("/jsonfiles/{fileId}/metadata", jsonConfig.HandlerGetJsonMetadata)
+			r.Patch("/jsonfiles/{fileId}", jsonConfig.HandlerRenameJsonFile)
+			r.Put("/jsonfiles/{fileID}", jsonConfig.HandlerUpdateJson)
+		})
 	})
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%v", cfg.port),
