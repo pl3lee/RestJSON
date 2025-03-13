@@ -9,12 +9,18 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getJSONFile, getJSONMetadata, renameJSONFile } from "@/lib/api";
+import {
+	getJSONFile,
+	getJSONMetadata,
+	renameJSONFile,
+	updateJSONFile,
+} from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
+import { useDebouncedCallback } from "use-debounce";
 
 export function JsonFile() {
 	const { fileId } = useParams();
@@ -25,6 +31,7 @@ export function JsonFile() {
 		queryFn: async () => await getJSONFile(fileId!),
 		enabled: !!fileId,
 	});
+	const jsonString = jsonFile ? JSON.stringify(jsonFile, null, 2) : "";
 	const { data: jsonMetadata, isLoading: jsonMetadataLoading } = useQuery({
 		queryKey: [`jsonmetadata-${fileId}`],
 		queryFn: async () => await getJSONMetadata(fileId!),
@@ -43,16 +50,38 @@ export function JsonFile() {
 		},
 	});
 
+	const updateMutation = useMutation({
+		mutationFn: (variables: { fileId: string; contents: unknown }) =>
+			updateJSONFile(variables),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: [`jsonfile-${fileId}`],
+			});
+		},
+	});
+
 	const handleRename = () => {
 		if (newFileName !== jsonMetadata?.fileName && newFileName !== "") {
 			renameMutation.mutate({ fileId: fileId!, name: newFileName });
 		}
 	};
-	console.log(jsonFile);
+	const handleEditorChange = useDebouncedCallback(
+		(value: string | undefined) => {
+			if (value !== undefined) {
+				try {
+					const contents = JSON.parse(value);
+					updateMutation.mutate({ fileId: fileId!, contents });
+				} catch (e) {
+					console.error(e);
+					return;
+				}
+			}
+		},
+		3000,
+	);
 	if (jsonFileLoading || jsonMetadataLoading) {
 		return <div>Loading...</div>;
 	}
-	const jsonString = jsonFile ? JSON.stringify(jsonFile, null, 2) : "";
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -70,6 +99,7 @@ export function JsonFile() {
 					defaultLanguage="json"
 					defaultValue={jsonString}
 					theme={theme === "light" ? theme : "vs-dark"}
+					onChange={handleEditorChange}
 				/>
 			</Card>
 			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
