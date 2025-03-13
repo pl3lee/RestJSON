@@ -154,7 +154,8 @@ func main() {
 			r.Get("/jsonfiles/{fileId}", jsonConfig.HandlerGetJson)
 			r.Get("/jsonfiles/{fileId}/metadata", jsonConfig.HandlerGetJsonMetadata)
 			r.Patch("/jsonfiles/{fileId}", jsonConfig.HandlerRenameJsonFile)
-			r.Put("/jsonfiles/{fileID}", jsonConfig.HandlerUpdateJson)
+			r.Put("/jsonfiles/{fileId}", jsonConfig.HandlerUpdateJson)
+			r.Delete("/jsonfiles/{fileId}", jsonConfig.HandlerDeleteJsonFile)
 		})
 	})
 	srv := &http.Server{

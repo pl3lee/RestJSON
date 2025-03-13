@@ -223,3 +223,19 @@ func (cfg *JsonConfig) HandlerRenameJsonFile(w http.ResponseWriter, r *http.Requ
 
 	utils.RespondWithJSON(w, http.StatusOK, response)
 }
+
+func (cfg *JsonConfig) HandlerDeleteJsonFile(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+
+	err := cfg.Db.DeleteJsonFile(r.Context(), fileMetadata.ID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error deleting json file from db", err)
+		return
+	}
+	if err := cfg.deleteFileFromS3(r.Context(), userId, fileMetadata.ID); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error deleting json file from s3", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+}
