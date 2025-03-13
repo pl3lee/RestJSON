@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, User } from "lucide-react";
 import { Link, Outlet, useNavigate } from "react-router";
+import { Toaster } from "sonner";
 
 export function AppLayout() {
 	const navigate = useNavigate();
@@ -76,6 +77,7 @@ export function AppLayout() {
 			<main className="flex-grow p-4">
 				<Outlet />
 			</main>
+			<Toaster />
 		</div>
 	);
 }

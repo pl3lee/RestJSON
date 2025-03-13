@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { CalendarDays, File, Trash } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
 import { useAuth } from "../hooks/useAuth";
 
 export function App() {
@@ -24,6 +25,9 @@ export function App() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 			setNewFileName("");
+		},
+		onError: () => {
+			toast.error("An error occurred, check console for details");
 		},
 	});
 	const deleteMutation = useMutation({
@@ -50,6 +54,10 @@ export function App() {
 				className="flex flex-row w-full gap-2"
 				onSubmit={(e) => {
 					e.preventDefault();
+					if (newFileName === "") {
+						toast.error("File name cannot be empty!");
+						return;
+					}
 					createMutation.mutate(newFileName);
 				}}
 			>
@@ -91,8 +99,8 @@ export function App() {
 											onClick={(e) => {
 												e.stopPropagation();
 												deleteMutation.mutate(file.id);
-												console.log("delete");
 											}}
+											disabled={deleteMutation.isPending}
 										>
 											<Trash />
 										</Button>

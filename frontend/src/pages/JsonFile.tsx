@@ -20,6 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
+import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 
 export function JsonFile() {
@@ -61,9 +62,15 @@ export function JsonFile() {
 	});
 
 	const handleRename = () => {
-		if (newFileName !== jsonMetadata?.fileName && newFileName !== "") {
-			renameMutation.mutate({ fileId: fileId!, name: newFileName });
+		if (newFileName === "") {
+			toast.error("File name cannot be empty!");
+			return;
 		}
+		if (newFileName === jsonMetadata?.fileName) {
+			toast.error("New name cannot be the same as previous.");
+			return;
+		}
+		renameMutation.mutate({ fileId: fileId!, name: newFileName });
 	};
 	const handleEditorChange = useDebouncedCallback(
 		(value: string | undefined) => {
