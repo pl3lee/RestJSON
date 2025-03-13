@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil } from "lucide-react";
+import { AlertCircle, Check, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ export function JsonFile() {
 	const { fileId } = useParams();
 	const queryClient = useQueryClient();
 	const { theme } = useTheme();
+	const [saved, setSaved] = useState(true);
 	const { data: jsonFile, isLoading: jsonFileLoading } = useQuery({
 		queryKey: [`jsonfile-${fileId}`],
 		queryFn: async () => await getJSONFile(fileId!),
@@ -58,6 +59,8 @@ export function JsonFile() {
 			queryClient.invalidateQueries({
 				queryKey: [`jsonfile-${fileId}`],
 			});
+			setSaved(true);
+			toast.success("Changes saved successfully.");
 		},
 	});
 
@@ -72,7 +75,19 @@ export function JsonFile() {
 		}
 		renameMutation.mutate({ fileId: fileId!, name: newFileName });
 	};
-	const handleEditorChange = useDebouncedCallback(
+	const handleEditorChange = (value: string | undefined) => {
+		setSaved(false);
+		if (value !== undefined) {
+			const normalizedValue = JSON.stringify(JSON.parse(value));
+			const normalizedCurrentContents = JSON.stringify(jsonFile);
+			if (normalizedValue === normalizedCurrentContents) {
+				setSaved(true);
+				return;
+			}
+		}
+		debouncedHandleEditorChange(value);
+	};
+	const debouncedHandleEditorChange = useDebouncedCallback(
 		(value: string | undefined) => {
 			if (value !== undefined) {
 				try {
@@ -84,7 +99,7 @@ export function JsonFile() {
 				}
 			}
 		},
-		3000,
+		1000,
 	);
 	if (jsonFileLoading || jsonMetadataLoading) {
 		return <div>Loading...</div>;
@@ -93,13 +108,32 @@ export function JsonFile() {
 	return (
 		<div className="flex flex-col gap-2">
 			<Card>
-				<CardHeader className="flex flex-row items-center gap-2">
-					<Button onClick={() => setIsDialogOpen(true)}>
-						<Pencil />
-					</Button>
-					<CardTitle>
-						<h1>{jsonMetadata?.fileName}</h1>
-					</CardTitle>
+				<CardHeader className="flex flex-row items-center justify-between">
+					<div className="flex flex-row justify-start items-center gap-2">
+						<Button onClick={() => setIsDialogOpen(true)}>
+							<Pencil />
+						</Button>
+						<CardTitle>
+							<h1>{jsonMetadata?.fileName}</h1>
+						</CardTitle>
+					</div>
+					<div className="flex flex-row justify-end items-center gap-2">
+						{saved ? (
+							<>
+								<Check className="h-4 w-4 text-green-500" />
+								<span className="text-sm text-green-500 font-medium">
+									Saved
+								</span>
+							</>
+						) : (
+							<>
+								<AlertCircle className="h-4 w-4 text-amber-500" />
+								<span className="text-sm text-amber-500 font-medium">
+									Unsaved
+								</span>
+							</>
+						)}
+					</div>
 				</CardHeader>
 				<Editor
 					height="90vh"
