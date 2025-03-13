@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { createJSONFile, getAllJSONMetadata } from "@/lib/api";
+import { createJSONFile, deleteJSONFile, getAllJSONMetadata } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarDays, File, Trash } from "lucide-react";
@@ -19,11 +19,17 @@ export function App() {
 		queryFn: getAllJSONMetadata,
 		enabled: !!user,
 	});
-	const mutation = useMutation({
+	const createMutation = useMutation({
 		mutationFn: createJSONFile,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 			setNewFileName("");
+		},
+	});
+	const deleteMutation = useMutation({
+		mutationFn: deleteJSONFile,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 		},
 	});
 	if (isLoadingUser) {
@@ -42,9 +48,9 @@ export function App() {
 		<div className="flex flex-col gap-5">
 			<form
 				className="flex flex-row w-full gap-2"
-				onSubmit={async (e) => {
+				onSubmit={(e) => {
 					e.preventDefault();
-					mutation.mutate(newFileName);
+					createMutation.mutate(newFileName);
 				}}
 			>
 				<Input
@@ -52,7 +58,7 @@ export function App() {
 					onChange={(e) => setNewFileName(e.target.value)}
 					placeholder="Enter new file name"
 				/>
-				<Button type="submit" disabled={mutation.isPending}>
+				<Button type="submit" disabled={createMutation.isPending}>
 					Create JSON File
 				</Button>
 			</form>
@@ -84,6 +90,7 @@ export function App() {
 											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
+												deleteMutation.mutate(file.id);
 												console.log("delete");
 											}}
 										>

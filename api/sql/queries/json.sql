@@ -18,3 +18,7 @@ UPDATE json_files
 SET file_name=$2, updated_at=NOW()
 WHERE id=$1
 RETURNING *;
+
+-- name: DeleteJsonFile :exec
+DELETE FROM json_files
+WHERE id=$1;

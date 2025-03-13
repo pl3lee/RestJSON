@@ -165,10 +165,13 @@ export async function renameJSONFile({
 	}
 }
 
-export async function updateJSONFile<T>(
-	fileId: string,
-	contents: T,
-): Promise<T | undefined> {
+export async function updateJSONFile<T>({
+	fileId,
+	contents,
+}: {
+	fileId: string;
+	contents: T;
+}): Promise<T | undefined> {
 	try {
 		const res = await fetch(
 			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
@@ -187,5 +190,24 @@ export async function updateJSONFile<T>(
 	} catch (e) {
 		console.error(e);
 		return undefined;
+	}
+}
+
+export async function deleteJSONFile(fileId: string): Promise<void> {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			{
+				method: "DELETE",
+				credentials: "include",
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to delete JSON");
+		}
+		return;
+	} catch (e) {
+		console.error(e);
 	}
 }

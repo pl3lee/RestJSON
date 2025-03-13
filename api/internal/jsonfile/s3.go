@@ -41,3 +41,15 @@ func (cfg *JsonConfig) getFileFromS3(ctx context.Context, userId, fileId uuid.UU
 
 	return body, nil
 }
+
+func (cfg *JsonConfig) deleteFileFromS3(ctx context.Context, userId, fileId uuid.UUID) error {
+	s3Params := &s3.DeleteObjectInput{
+		Bucket: aws.String(cfg.S3Bucket),
+		Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
+	}
+	_, err := cfg.S3Client.DeleteObject(ctx, s3Params)
+	if err != nil {
+		return fmt.Errorf("deleteFileFromS3: error deleting object frmo S3: %w", err)
+	}
+	return nil
+}

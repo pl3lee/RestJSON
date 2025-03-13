@@ -43,6 +43,16 @@ func (q *Queries) CreateNewJson(ctx context.Context, arg CreateNewJsonParams) (J
 	return i, err
 }
 
+const deleteJsonFile = `-- name: DeleteJsonFile :exec
+DELETE FROM json_files
+WHERE id=$1
+`
+
+func (q *Queries) DeleteJsonFile(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteJsonFile, id)
+	return err
+}
+
 const getJsonFile = `-- name: GetJsonFile :one
 SELECT id, created_at, updated_at, user_id, file_name, url
 FROM json_files
