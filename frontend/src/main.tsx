@@ -9,6 +9,7 @@ import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
 import Home from "./pages/Home.tsx";
 import { JsonFile } from "./pages/JsonFile.tsx";
+import { Account } from "./pages/Account.tsx";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
 						<Route path="app" element={<AppLayout />}>
 							<Route index element={<App />} />
 							<Route path="jsonfile/:fileId" element={<JsonFile />} />
+							<Route path="account" element={<Account />} />
 						</Route>
 					</Routes>
 				</BrowserRouter>

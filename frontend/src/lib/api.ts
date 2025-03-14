@@ -11,6 +11,10 @@ export type FileMetadata = {
 	modifiedAt: string;
 };
 
+export type ApiKey = {
+	apiKey: string;
+};
+
 export async function fetchMe(): Promise<User | undefined> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
@@ -209,5 +213,23 @@ export async function deleteJSONFile(fileId: string): Promise<void> {
 		return;
 	} catch (e) {
 		console.error(e);
+	}
+}
+
+export async function createApiKey(): Promise<ApiKey | undefined> {
+	try {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
+			method: "POST",
+			credentials: "include",
+		});
+
+		if (!res.ok) {
+			throw new Error("Failed to delete JSON");
+		}
+		const data: ApiKey = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
 	}
 }
