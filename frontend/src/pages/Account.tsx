@@ -25,11 +25,24 @@ export function Account() {
 					<CardTitle>API Key</CardTitle>
 				</CardHeader>
 				<CardContent>
-					{apiKeysMetadata.length == 0
-						? "No API Keys yet"
-						: apiKeysMetadata.map((apiKey) => {
-							<div className="flex flex-row gap-2"></div>;
-						})}
+					{apiKeysMetadataLoading ? (
+						<p>Loading...</p>
+					) : apiKeysMetadata?.length === 0 ? (
+						<p>No API Keys yet</p>
+					) : (
+						apiKeysMetadata?.map((key) => (
+							<div key={key.hash} className="flex flex-col gap-2 p-2 border-b">
+								<p>
+									<strong>Created At:</strong>{" "}
+									{new Date(key.createdAt).toLocaleString()}
+								</p>
+								<p>
+									<strong>Last Used At:</strong>{" "}
+									{new Date(key.lastUsedAt).toLocaleString()}
+								</p>
+							</div>
+						))
+					)}
 					{!apiKey ? (
 						<Button
 							onClick={() => createApiKeyMutation.mutate()}
@@ -41,6 +54,10 @@ export function Account() {
 						<div>
 							<h2>Your API Key:</h2>
 							<Input readOnly value={apiKey} />
+							<p className="text-red-500">
+								Please save this API key securely. You won't be able to see it
+								again.
+							</p>
 						</div>
 					)}
 				</CardContent>
