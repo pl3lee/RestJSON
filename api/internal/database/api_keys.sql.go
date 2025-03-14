@@ -11,19 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
-const createAPiKey = `-- name: CreateAPiKey :one
+const createApiKey = `-- name: CreateApiKey :one
 INSERT INTO api_keys(user_id, key_hash)
 VALUES ($1, $2)
 RETURNING id, created_at, updated_at, user_id, key_hash, last_used_at
 `
 
-type CreateAPiKeyParams struct {
+type CreateApiKeyParams struct {
 	UserID  uuid.UUID
 	KeyHash string
 }
 
-func (q *Queries) CreateAPiKey(ctx context.Context, arg CreateAPiKeyParams) (ApiKey, error) {
-	row := q.db.QueryRowContext(ctx, createAPiKey, arg.UserID, arg.KeyHash)
+func (q *Queries) CreateApiKey(ctx context.Context, arg CreateApiKeyParams) (ApiKey, error) {
+	row := q.db.QueryRowContext(ctx, createApiKey, arg.UserID, arg.KeyHash)
 	var i ApiKey
 	err := row.Scan(
 		&i.ID,

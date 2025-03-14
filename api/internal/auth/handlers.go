@@ -18,6 +18,10 @@ type UserResponse struct {
 	Name  string    `json:"name"`
 }
 
+type ApiKeyResponse struct {
+	ApiKey string `json:"apiKey"`
+}
+
 func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	url, state, err := cfg.getAuthCodeURL()
 	if err != nil {
@@ -160,4 +164,18 @@ func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		Name:  user.Name,
 	})
+}
+
+func (cfg *AuthConfig) HandlerCreateApiKey(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+
+	apiKey, err := cfg.createApiKey(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create api key", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, ApiKeyResponse{
+		ApiKey: apiKey,
+	})
+
 }
