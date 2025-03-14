@@ -114,7 +114,6 @@ func main() {
 		S3Client:   cfg.s3Client,
 	}
 
-	log.Printf("env vars: %v\n", cfg)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -140,7 +139,7 @@ func main() {
 	r.Get("/auth/google/callback", authConfig.HandlerGoogleCallback)
 
 	r.Group(func(r chi.Router) {
-		r.Use(authConfig.AuthMiddleware)
+		r.Use(authConfig.SessionMiddleware)
 
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)

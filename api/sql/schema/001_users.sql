@@ -17,5 +17,5 @@ CREATE TABLE user_sessions (
 );
 
 -- +goose Down
-DROP TABLE users;
 DROP TABLE user_sessions;
+DROP TABLE users;
