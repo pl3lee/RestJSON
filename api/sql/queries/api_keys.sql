@@ -8,6 +8,11 @@ SELECT *
 FROM api_keys
 WHERE key_hash=$1;
 
+-- name: GetAllApiKeys :many
+SELECT *
+FROM api_keys
+WHERE user_id=$1;
+
 -- name: UpdateApiKeyLastUsed :exec
 UPDATE api_keys
 SET updated_at=NOW(), last_used_at=NOW()

@@ -32,5 +32,4 @@ func (cfg *AuthConfig) createApiKey(ctx context.Context, userId uuid.UUID) (stri
 		return "", fmt.Errorf("error in storing api key to database")
 	}
 	return apiKey, nil
-
 }

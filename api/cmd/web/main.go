@@ -144,6 +144,8 @@ func main() {
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)
 		r.Post("/apikeys", authConfig.HandlerCreateApiKey)
+		r.Get("/apikeys", authConfig.HandlerGetAllApiKeys)
+		r.Delete("/apikeys/{keyHash}", authConfig.HandlerDeleteApiKey)
 
 		r.Post("/jsonfiles", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)

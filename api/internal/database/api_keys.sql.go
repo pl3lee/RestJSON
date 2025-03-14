@@ -46,6 +46,42 @@ func (q *Queries) DeleteApiKey(ctx context.Context, keyHash string) error {
 	return err
 }
 
+const getAllApiKeys = `-- name: GetAllApiKeys :many
+SELECT id, created_at, updated_at, user_id, key_hash, last_used_at
+FROM api_keys
+WHERE user_id=$1
+`
+
+func (q *Queries) GetAllApiKeys(ctx context.Context, userID uuid.UUID) ([]ApiKey, error) {
+	rows, err := q.db.QueryContext(ctx, getAllApiKeys, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ApiKey
+	for rows.Next() {
+		var i ApiKey
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.KeyHash,
+			&i.LastUsedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserFromApiKeyHash = `-- name: GetUserFromApiKeyHash :one
 SELECT id, created_at, updated_at, user_id, key_hash, last_used_at
 FROM api_keys
