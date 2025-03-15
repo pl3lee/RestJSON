@@ -1,5 +1,6 @@
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
+import { fetchPublic } from "@/lib/api";
 import { Link } from "react-router";
 
 function Home() {
@@ -8,6 +9,9 @@ function Home() {
 			<ModeToggle />
 			<Button asChild>
 				<Link to="/auth">Get Started</Link>
+			</Button>
+			<Button onClick={async () => await fetchPublic()}>
+				Fetch from public
 			</Button>
 		</div>
 	);
