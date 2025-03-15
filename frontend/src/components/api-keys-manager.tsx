@@ -1,7 +1,10 @@
-import { getAllApiKeys, createApiKey, deleteApiKey } from "@/lib/api";
+import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Check, Copy, Key, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "./ui/alert";
+import { Button } from "./ui/button";
 import {
 	Card,
 	CardContent,
@@ -19,11 +22,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { AlertTriangle, Check, Copy, Key, Trash2 } from "lucide-react";
-import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { Alert, AlertDescription } from "./ui/alert";
+import { Label } from "./ui/label";
 import {
 	Table,
 	TableBody,

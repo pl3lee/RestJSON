@@ -5,11 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { AppLayout } from "./layouts/AppLayout.tsx";
+import { Account } from "./pages/Account.tsx";
 import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
 import Home from "./pages/Home.tsx";
 import { JsonFile } from "./pages/JsonFile.tsx";
-import { Account } from "./pages/Account.tsx";
 
 const queryClient = new QueryClient();
 
