@@ -33,6 +33,7 @@ export function JsonFile() {
 				queryKey: [`jsonmetadata-${fileId}`],
 			});
 			setIsDialogOpen(false);
+			toast.success("Renamed file successfully");
 		},
 	});
 
