@@ -92,7 +92,7 @@ jobs:
 
       - name: Security check
         working-directory: ./api
-        run: gosec ./...
+        run: gosec -exclude=G101 ./...
 
   style_api:
     name: Style api

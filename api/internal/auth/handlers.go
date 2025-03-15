@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pl3lee/webjson/internal/database"
 	"github.com/pl3lee/webjson/internal/utils"
@@ -16,6 +18,17 @@ type UserResponse struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 	Name  string    `json:"name"`
+}
+
+type ApiKeyResponse struct {
+	ApiKey string `json:"apiKey"`
+}
+
+type ApiKeyMetadata struct {
+	Hash       string    `json:"hash"`
+	CreatedAt  time.Time `json:"createdAt"`
+	LastUsedAt time.Time `json:"lastUsedAt"`
+	Name       string    `json:"name"`
 }
 
 func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
@@ -160,4 +173,72 @@ func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		Name:  user.Name,
 	})
+}
+
+type CreateApiKeyRequest struct {
+	Name string `json:"name"`
+}
+
+func (cfg *AuthConfig) HandlerCreateApiKey(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+	var createApiKeyReq CreateApiKeyRequest
+	err := utils.DecodeRequest(r, &createApiKeyReq)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot decode request", err)
+		return
+	}
+
+	apiKey, err := cfg.createApiKey(r.Context(), userId, createApiKeyReq.Name)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create api key", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, ApiKeyResponse{
+		ApiKey: apiKey,
+	})
+}
+
+func (cfg *AuthConfig) HandlerGetAllApiKeys(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+
+	allApiKeys, err := cfg.Db.GetAllApiKeys(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get api keys", err)
+		return
+	}
+	response := []ApiKeyMetadata{}
+
+	for _, apiKey := range allApiKeys {
+		response = append(response, ApiKeyMetadata{
+			Hash:       apiKey.KeyHash,
+			CreatedAt:  apiKey.CreatedAt,
+			LastUsedAt: apiKey.LastUsedAt,
+			Name:       apiKey.Name,
+		})
+	}
+	utils.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (cfg *AuthConfig) HandlerDeleteApiKey(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+
+	keyHash := chi.URLParam(r, "keyHash")
+
+	apiKey, err := cfg.Db.GetUserFromApiKeyHash(r.Context(), keyHash)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "cannot get api key from db", err)
+		return
+	}
+
+	if apiKey.UserID != userId {
+		utils.RespondWithError(w, http.StatusUnauthorized, "api key does not belong to user", err)
+		return
+	}
+
+	err = cfg.Db.DeleteApiKey(r.Context(), keyHash)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot delete api key from db", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }

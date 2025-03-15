@@ -4,7 +4,6 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -64,7 +63,12 @@ export function AppLayout() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-56">
-							<DropdownMenuLabel>My Account</DropdownMenuLabel>
+							<DropdownMenuItem>
+								<User className="h-4 w-4" />
+								<span>
+									<Link to="/app/account">My Account</Link>
+								</span>
+							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={() => logout()}>
 								<LogOut className="mr-2 h-4 w-4" />

@@ -11,6 +11,17 @@ export type FileMetadata = {
 	modifiedAt: string;
 };
 
+export type ApiKey = {
+	apiKey: string;
+};
+
+export type ApiKeyMetadata = {
+	hash: string;
+	name: string;
+	createdAt: string;
+	lastUsedAt: string;
+};
+
 export async function fetchMe(): Promise<User | undefined> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
@@ -207,6 +218,63 @@ export async function deleteJSONFile(fileId: string): Promise<void> {
 			throw new Error("Failed to delete JSON");
 		}
 		return;
+	} catch (e) {
+		console.error(e);
+	}
+}
+
+export async function createApiKey(name: string): Promise<ApiKey | undefined> {
+	try {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
+			method: "POST",
+			credentials: "include",
+			body: JSON.stringify({
+				name,
+			}),
+		});
+
+		if (!res.ok) {
+			throw new Error("Failed to create api key");
+		}
+		const data: ApiKey = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
+	}
+}
+
+export async function getAllApiKeys(): Promise<ApiKeyMetadata[] | undefined> {
+	try {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
+			method: "GET",
+			credentials: "include",
+		});
+
+		if (!res.ok) {
+			throw new Error("Failed to get all api keys");
+		}
+		const data: ApiKeyMetadata[] = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
+	}
+}
+
+export async function deleteApiKey(keyHash: string): Promise<void> {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_WEB_API_URL}/apikeys/${keyHash}`,
+			{
+				method: "DELETE",
+				credentials: "include",
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to delete api key");
+		}
 	} catch (e) {
 		console.error(e);
 	}

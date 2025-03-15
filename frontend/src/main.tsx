@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ThemeProvider } from "./components/theme-provider.tsx";
 import { AppLayout } from "./layouts/AppLayout.tsx";
+import { Account } from "./pages/Account.tsx";
 import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
 import Home from "./pages/Home.tsx";
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
 						<Route path="app" element={<AppLayout />}>
 							<Route index element={<App />} />
 							<Route path="jsonfile/:fileId" element={<JsonFile />} />
+							<Route path="account" element={<Account />} />
 						</Route>
 					</Routes>
 				</BrowserRouter>

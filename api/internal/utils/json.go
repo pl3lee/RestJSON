@@ -43,13 +43,13 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	}
 }
 
-func DecodeResponse[T any](resp *http.Response, result *T) error {
-	if resp == nil {
-		return fmt.Errorf("nil response")
+func DecodeRequest[T any](r *http.Request, result *T) error {
+	if r == nil {
+		return fmt.Errorf("DecodeRequest: nil request")
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		return fmt.Errorf("failed to decode response: %w", err)
+	if err := json.NewDecoder(r.Body).Decode(result); err != nil {
+		return fmt.Errorf("DecodeRequest: failed to decode request: %w", err)
 	}
 
 	return nil
