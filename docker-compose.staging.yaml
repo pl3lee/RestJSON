@@ -15,6 +15,8 @@ services:
       - '3001:3001'
     env_file:
       - .env.api
+    volumes:
+      - $HOME/.aws:/root/.aws:ro
 
   db:
     image: postgres:15
