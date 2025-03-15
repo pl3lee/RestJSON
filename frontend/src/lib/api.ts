@@ -22,6 +22,21 @@ export type ApiKeyMetadata = {
 	lastUsedAt: string;
 };
 
+export async function fetchPublic() {
+	try {
+		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/public`);
+
+		if (!res.ok) {
+			throw new Error("failed to fetch from public");
+		}
+		const data = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
+	}
+}
+
 export async function fetchMe(): Promise<User | undefined> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
