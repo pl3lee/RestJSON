@@ -26,7 +26,7 @@ type appConfig struct {
 	port               string
 	clientURL          string
 	dbUrl              string
-	webBaseURL         string
+	baseURL            string
 	googleClientID     string
 	googleClientSecret string
 	db                 *database.Queries
@@ -35,41 +35,41 @@ type appConfig struct {
 	s3Client           *s3.Client
 }
 
-func main() {
+func loadAppConfig() *appConfig {
 	// env variables
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Cannot read .env file, this is normal when running in a docker container: %v\n", err)
 	}
-	port := os.Getenv("WEB_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("WEB_PORT not set")
+		log.Fatal("PORT not set")
 	}
-	clientURL := os.Getenv("SHARED_CLIENT_URL")
+	clientURL := os.Getenv("CLIENT_URL")
 	if clientURL == "" {
-		log.Fatal("SHARED_CLIENT_URL not set")
+		log.Fatal("CLIENT_URL not set")
 	}
-	dbUrl := os.Getenv("SHARED_DB_URL")
+	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
-		log.Fatal("SHARED_DB_URL not set")
+		log.Fatal("DB_URL not set")
 	}
-	baseUrl := os.Getenv("WEB_BASE_URL")
+	baseUrl := os.Getenv("BASE_URL")
 	if baseUrl == "" {
-		log.Fatal("WEB_BASE_URL not set")
+		log.Fatal("BASE_URL not set")
 	}
-	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
+	googleClientID, googleClientSecret := os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET")
 	if googleClientID == "" {
-		log.Fatal("WEB_GOOGLE_CLIENT_ID not set")
+		log.Fatal("GOOGLE_CLIENT_ID not set")
 	}
 	if googleClientSecret == "" {
-		log.Fatal("WEB_GOOGLE_CLIENT_SECRET not set")
+		log.Fatal("GOOGLE_CLIENT_SECRET not set")
 	}
-	s3Bucket := os.Getenv("SHARED_S3_BUCKET")
+	s3Bucket := os.Getenv("S3_BUCKET")
 	if s3Bucket == "" {
-		log.Fatal("SHARED_S3_BUCKET not set")
+		log.Fatal("S3_BUCKET not set")
 	}
-	s3Region := os.Getenv("SHARED_S3_REGION")
+	s3Region := os.Getenv("S3_REGION")
 	if s3Region == "" {
-		log.Fatal("SHARED_S3_REGION not set")
+		log.Fatal("S3_REGION not set")
 	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
@@ -84,11 +84,11 @@ func main() {
 	}
 	dbQueries := database.New(pgDb)
 
-	cfg := appConfig{
+	cfg := &appConfig{
 		port:               port,
 		clientURL:          clientURL,
 		dbUrl:              dbUrl,
-		webBaseURL:         baseUrl,
+		baseURL:            baseUrl,
 		googleClientID:     googleClientID,
 		googleClientSecret: googleClientSecret,
 		db:                 dbQueries,
@@ -96,23 +96,36 @@ func main() {
 		s3Region:           s3Region,
 		s3Client:           client,
 	}
+	return cfg
+}
 
-	authConfig := auth.AuthConfig{
+func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
+	authConfig := &auth.AuthConfig{
 		Db:                 cfg.db,
-		WebBaseURL:         cfg.webBaseURL,
+		BaseURL:            cfg.baseURL,
 		GoogleClientID:     cfg.googleClientID,
 		GoogleClientSecret: cfg.googleClientSecret,
 		ClientURL:          cfg.clientURL,
 	}
+	return authConfig
+}
 
-	jsonConfig := jsonfile.JsonConfig{
-		Db:         cfg.db,
-		WebBaseURL: cfg.webBaseURL,
-		ClientURL:  cfg.clientURL,
-		S3Bucket:   cfg.s3Bucket,
-		S3Region:   cfg.s3Region,
-		S3Client:   cfg.s3Client,
+func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
+	jsonConfig := &jsonfile.JsonConfig{
+		Db:        cfg.db,
+		BaseURL:   cfg.baseURL,
+		ClientURL: cfg.clientURL,
+		S3Bucket:  cfg.s3Bucket,
+		S3Region:  cfg.s3Region,
+		S3Client:  cfg.s3Client,
 	}
+	return jsonConfig
+}
+
+func main() {
+	appConfig := loadAppConfig()
+	authConfig := loadAuthConfig(appConfig)
+	jsonConfig := loadJsonConfig(appConfig)
 
 	r := chi.NewRouter()
 
@@ -122,8 +135,31 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	r.Mount("/", webRouter(appConfig, authConfig, jsonConfig))
+	r.Mount("/public", publicRouter(authConfig, jsonConfig))
+
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%v", appConfig.port),
+		Handler:           r,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	log.Printf("Listening on port %v", appConfig.port)
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Fatalf("error starting server at port %v", appConfig.port)
+	}
+
+}
+
+func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) http.Handler {
+	r := chi.NewRouter()
+
 	corsWeb := cors.Handler(cors.Options{
-		AllowedOrigins:   []string{cfg.clientURL},
+		AllowedOrigins:   []string{appConfig.clientURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -161,32 +197,11 @@ func main() {
 		})
 	})
 
-	r.Mount("/public", publicRouter())
-
-	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%v", cfg.port),
-		Handler:           r,
-		ReadTimeout:       15 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
-		WriteTimeout:      15 * time.Second,
-		IdleTimeout:       60 * time.Second,
-	}
-
-	log.Printf("Listening on port %v", cfg.port)
-	err = srv.ListenAndServe()
-	if err != nil {
-		log.Fatalf("error starting server at port %v", cfg.port)
-	}
-
+	return r
 }
 
-func publicRouter() http.Handler {
+func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) http.Handler {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
 
 	corsPublic := cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -196,6 +211,21 @@ func publicRouter() http.Handler {
 		MaxAge:           300,
 	})
 	r.Use(corsPublic)
+	r.Group(func(r chi.Router) {
+		r.Use(authConfig.ApiKeyMiddleware)
+
+		r.Group(func(r chi.Router) {
+			r.Use(jsonConfig.JsonFileMiddleware)
+
+			r.Get("/{fileId}", jsonConfig.HandlerGetJson)
+			// TODO: auto generate routes, say
+			// GET /posts
+			// GET /posts/:id
+			// POST /posts
+			// PUT /posts/:id
+			// DELETE /posts/:id
+		})
+	})
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithJSON(w, http.StatusOK, "Hello world from public api!")
 	})

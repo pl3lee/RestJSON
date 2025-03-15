@@ -6,10 +6,10 @@ import (
 )
 
 type JsonConfig struct {
-	Db         *database.Queries
-	WebBaseURL string
-	ClientURL  string
-	S3Bucket   string
-	S3Region   string
-	S3Client   *s3.Client
+	Db        *database.Queries
+	BaseURL   string
+	ClientURL string
+	S3Bucket  string
+	S3Region  string
+	S3Client  *s3.Client
 }

@@ -24,7 +24,7 @@ export type ApiKeyMetadata = {
 
 export async function fetchPublic() {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/public`);
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/public`);
 
 		if (!res.ok) {
 			throw new Error("failed to fetch from public");
@@ -39,7 +39,7 @@ export async function fetchPublic() {
 
 export async function fetchMe(): Promise<User | undefined> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/me`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/me`, {
 			credentials: "include",
 		});
 
@@ -55,12 +55,12 @@ export async function fetchMe(): Promise<User | undefined> {
 }
 
 export function login(): void {
-	window.location.href = `${import.meta.env.VITE_WEB_API_URL}/auth/google/login`;
+	window.location.href = `${import.meta.env.VITE_API_URL}/auth/google/login`;
 }
 
 export async function logout(): Promise<void> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/logout`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
 			method: "PUT",
 			credentials: "include",
 		});
@@ -78,7 +78,7 @@ export async function createJSONFile(
 	fileName: string,
 ): Promise<FileMetadata | undefined> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfiles`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/jsonfiles`, {
 			method: "POST",
 			credentials: "include",
 			body: JSON.stringify({
@@ -100,7 +100,7 @@ export async function createJSONFile(
 export async function getJSONFile<T>(fileId: string): Promise<T | undefined> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}`,
 			{
 				method: "GET",
 				credentials: "include",
@@ -123,7 +123,7 @@ export async function getJSONMetadata(
 ): Promise<FileMetadata | undefined> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}/metadata`,
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}/metadata`,
 			{
 				method: "GET",
 				credentials: "include",
@@ -145,7 +145,7 @@ export async function getAllJSONMetadata(): Promise<
 	FileMetadata[] | undefined
 > {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/jsonfiles`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/jsonfiles`, {
 			method: "GET",
 			credentials: "include",
 		});
@@ -170,7 +170,7 @@ export async function renameJSONFile({
 }): Promise<FileMetadata | undefined> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}`,
 			{
 				method: "PATCH",
 				credentials: "include",
@@ -200,7 +200,7 @@ export async function updateJSONFile<T>({
 }): Promise<T | undefined> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}`,
 			{
 				method: "PUT",
 				credentials: "include",
@@ -222,7 +222,7 @@ export async function updateJSONFile<T>({
 export async function deleteJSONFile(fileId: string): Promise<void> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/jsonfiles/${fileId}`,
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}`,
 			{
 				method: "DELETE",
 				credentials: "include",
@@ -240,7 +240,7 @@ export async function deleteJSONFile(fileId: string): Promise<void> {
 
 export async function createApiKey(name: string): Promise<ApiKey | undefined> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/apikeys`, {
 			method: "POST",
 			credentials: "include",
 			body: JSON.stringify({
@@ -261,7 +261,7 @@ export async function createApiKey(name: string): Promise<ApiKey | undefined> {
 
 export async function getAllApiKeys(): Promise<ApiKeyMetadata[] | undefined> {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
+		const res = await fetch(`${import.meta.env.VITE_API_URL}/apikeys`, {
 			method: "GET",
 			credentials: "include",
 		});
@@ -280,7 +280,7 @@ export async function getAllApiKeys(): Promise<ApiKeyMetadata[] | undefined> {
 export async function deleteApiKey(keyHash: string): Promise<void> {
 	try {
 		const res = await fetch(
-			`${import.meta.env.VITE_WEB_API_URL}/apikeys/${keyHash}`,
+			`${import.meta.env.VITE_API_URL}/apikeys/${keyHash}`,
 			{
 				method: "DELETE",
 				credentials: "include",
