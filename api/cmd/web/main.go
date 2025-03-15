@@ -26,7 +26,7 @@ type appConfig struct {
 	port               string
 	clientURL          string
 	dbUrl              string
-	webBaseURL         string
+	baseURL            string
 	googleClientID     string
 	googleClientSecret string
 	db                 *database.Queries
@@ -40,36 +40,36 @@ func loadAppConfig() *appConfig {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Cannot read .env file, this is normal when running in a docker container: %v\n", err)
 	}
-	port := os.Getenv("WEB_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("WEB_PORT not set")
+		log.Fatal("PORT not set")
 	}
-	clientURL := os.Getenv("SHARED_CLIENT_URL")
+	clientURL := os.Getenv("CLIENT_URL")
 	if clientURL == "" {
-		log.Fatal("SHARED_CLIENT_URL not set")
+		log.Fatal("CLIENT_URL not set")
 	}
-	dbUrl := os.Getenv("SHARED_DB_URL")
+	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
-		log.Fatal("SHARED_DB_URL not set")
+		log.Fatal("DB_URL not set")
 	}
-	baseUrl := os.Getenv("WEB_BASE_URL")
+	baseUrl := os.Getenv("BASE_URL")
 	if baseUrl == "" {
-		log.Fatal("WEB_BASE_URL not set")
+		log.Fatal("BASE_URL not set")
 	}
-	googleClientID, googleClientSecret := os.Getenv("WEB_GOOGLE_CLIENT_ID"), os.Getenv("WEB_GOOGLE_CLIENT_SECRET")
+	googleClientID, googleClientSecret := os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET")
 	if googleClientID == "" {
-		log.Fatal("WEB_GOOGLE_CLIENT_ID not set")
+		log.Fatal("GOOGLE_CLIENT_ID not set")
 	}
 	if googleClientSecret == "" {
-		log.Fatal("WEB_GOOGLE_CLIENT_SECRET not set")
+		log.Fatal("GOOGLE_CLIENT_SECRET not set")
 	}
-	s3Bucket := os.Getenv("SHARED_S3_BUCKET")
+	s3Bucket := os.Getenv("S3_BUCKET")
 	if s3Bucket == "" {
-		log.Fatal("SHARED_S3_BUCKET not set")
+		log.Fatal("S3_BUCKET not set")
 	}
-	s3Region := os.Getenv("SHARED_S3_REGION")
+	s3Region := os.Getenv("S3_REGION")
 	if s3Region == "" {
-		log.Fatal("SHARED_S3_REGION not set")
+		log.Fatal("S3_REGION not set")
 	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
@@ -88,7 +88,7 @@ func loadAppConfig() *appConfig {
 		port:               port,
 		clientURL:          clientURL,
 		dbUrl:              dbUrl,
-		webBaseURL:         baseUrl,
+		baseURL:            baseUrl,
 		googleClientID:     googleClientID,
 		googleClientSecret: googleClientSecret,
 		db:                 dbQueries,
@@ -102,7 +102,7 @@ func loadAppConfig() *appConfig {
 func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 	authConfig := &auth.AuthConfig{
 		Db:                 cfg.db,
-		WebBaseURL:         cfg.webBaseURL,
+		BaseURL:            cfg.baseURL,
 		GoogleClientID:     cfg.googleClientID,
 		GoogleClientSecret: cfg.googleClientSecret,
 		ClientURL:          cfg.clientURL,
@@ -112,12 +112,12 @@ func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 
 func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
 	jsonConfig := &jsonfile.JsonConfig{
-		Db:         cfg.db,
-		WebBaseURL: cfg.webBaseURL,
-		ClientURL:  cfg.clientURL,
-		S3Bucket:   cfg.s3Bucket,
-		S3Region:   cfg.s3Region,
-		S3Client:   cfg.s3Client,
+		Db:        cfg.db,
+		BaseURL:   cfg.baseURL,
+		ClientURL: cfg.clientURL,
+		S3Bucket:  cfg.s3Bucket,
+		S3Region:  cfg.s3Region,
+		S3Client:  cfg.s3Client,
 	}
 	return jsonConfig
 }

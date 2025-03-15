@@ -37,7 +37,7 @@ func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot generate google url", err)
 		return
 	}
-	isProd := !strings.Contains(cfg.WebBaseURL, "https")
+	isProd := !strings.Contains(cfg.BaseURL, "https")
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "oauthstate",
@@ -113,7 +113,7 @@ func (cfg *AuthConfig) HandlerGoogleCallback(w http.ResponseWriter, r *http.Requ
 		utils.RespondWithError(w, http.StatusInternalServerError, "error creating session", err)
 		return
 	}
-	isProd := !strings.Contains(cfg.WebBaseURL, "https")
+	isProd := !strings.Contains(cfg.BaseURL, "https")
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
