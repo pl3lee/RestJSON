@@ -6,7 +6,7 @@ services:
     ports:
       - '3000:3000'
 
-  web-api:
+  api:
     image: pl3lee/webjson-api:${SHA}
     container_name: webjson-api
     restart: unless-stopped
