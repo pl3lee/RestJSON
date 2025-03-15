@@ -28,6 +28,7 @@ type ApiKeyMetadata struct {
 	Hash       string    `json:"hash"`
 	CreatedAt  time.Time `json:"createdAt"`
 	LastUsedAt time.Time `json:"lastUsedAt"`
+	Name       string    `json:"name"`
 }
 
 func (cfg *AuthConfig) HandlerGoogleLogin(w http.ResponseWriter, r *http.Request) {
@@ -174,10 +175,20 @@ func (cfg *AuthConfig) HandlerGetMe(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type CreateApiKeyRequest struct {
+	Name string `json:"name"`
+}
+
 func (cfg *AuthConfig) HandlerCreateApiKey(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+	var createApiKeyReq CreateApiKeyRequest
+	err := utils.DecodeRequest(r, &createApiKeyReq)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot decode request", err)
+		return
+	}
 
-	apiKey, err := cfg.createApiKey(r.Context(), userId)
+	apiKey, err := cfg.createApiKey(r.Context(), userId, createApiKeyReq.Name)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create api key", err)
 		return
@@ -195,13 +206,14 @@ func (cfg *AuthConfig) HandlerGetAllApiKeys(w http.ResponseWriter, r *http.Reque
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get api keys", err)
 		return
 	}
-	var response []ApiKeyMetadata
+	response := []ApiKeyMetadata{}
 
 	for _, apiKey := range allApiKeys {
 		response = append(response, ApiKeyMetadata{
 			Hash:       apiKey.KeyHash,
 			CreatedAt:  apiKey.CreatedAt,
 			LastUsedAt: apiKey.LastUsedAt,
+			Name:       apiKey.Name,
 		})
 	}
 	utils.RespondWithJSON(w, http.StatusOK, response)

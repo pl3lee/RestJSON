@@ -1,6 +1,6 @@
 -- name: CreateApiKey :one
-INSERT INTO api_keys(user_id, key_hash)
-VALUES ($1, $2)
+INSERT INTO api_keys(user_id, key_hash, name)
+VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: GetUserFromApiKeyHash :one

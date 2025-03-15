@@ -12,18 +12,19 @@ import (
 )
 
 const createApiKey = `-- name: CreateApiKey :one
-INSERT INTO api_keys(user_id, key_hash)
-VALUES ($1, $2)
-RETURNING id, created_at, updated_at, user_id, key_hash, last_used_at
+INSERT INTO api_keys(user_id, key_hash, name)
+VALUES ($1, $2, $3)
+RETURNING id, created_at, updated_at, user_id, key_hash, last_used_at, name
 `
 
 type CreateApiKeyParams struct {
 	UserID  uuid.UUID
 	KeyHash string
+	Name    string
 }
 
 func (q *Queries) CreateApiKey(ctx context.Context, arg CreateApiKeyParams) (ApiKey, error) {
-	row := q.db.QueryRowContext(ctx, createApiKey, arg.UserID, arg.KeyHash)
+	row := q.db.QueryRowContext(ctx, createApiKey, arg.UserID, arg.KeyHash, arg.Name)
 	var i ApiKey
 	err := row.Scan(
 		&i.ID,
@@ -32,6 +33,7 @@ func (q *Queries) CreateApiKey(ctx context.Context, arg CreateApiKeyParams) (Api
 		&i.UserID,
 		&i.KeyHash,
 		&i.LastUsedAt,
+		&i.Name,
 	)
 	return i, err
 }
@@ -47,7 +49,7 @@ func (q *Queries) DeleteApiKey(ctx context.Context, keyHash string) error {
 }
 
 const getAllApiKeys = `-- name: GetAllApiKeys :many
-SELECT id, created_at, updated_at, user_id, key_hash, last_used_at
+SELECT id, created_at, updated_at, user_id, key_hash, last_used_at, name
 FROM api_keys
 WHERE user_id=$1
 `
@@ -68,6 +70,7 @@ func (q *Queries) GetAllApiKeys(ctx context.Context, userID uuid.UUID) ([]ApiKey
 			&i.UserID,
 			&i.KeyHash,
 			&i.LastUsedAt,
+			&i.Name,
 		); err != nil {
 			return nil, err
 		}
@@ -83,7 +86,7 @@ func (q *Queries) GetAllApiKeys(ctx context.Context, userID uuid.UUID) ([]ApiKey
 }
 
 const getUserFromApiKeyHash = `-- name: GetUserFromApiKeyHash :one
-SELECT id, created_at, updated_at, user_id, key_hash, last_used_at
+SELECT id, created_at, updated_at, user_id, key_hash, last_used_at, name
 FROM api_keys
 WHERE key_hash=$1
 `
@@ -98,6 +101,7 @@ func (q *Queries) GetUserFromApiKeyHash(ctx context.Context, keyHash string) (Ap
 		&i.UserID,
 		&i.KeyHash,
 		&i.LastUsedAt,
+		&i.Name,
 	)
 	return i, err
 }

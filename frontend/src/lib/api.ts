@@ -17,6 +17,7 @@ export type ApiKey = {
 
 export type ApiKeyMetadata = {
 	hash: string;
+	name: string;
 	createdAt: string;
 	lastUsedAt: string;
 };
@@ -222,11 +223,14 @@ export async function deleteJSONFile(fileId: string): Promise<void> {
 	}
 }
 
-export async function createApiKey(): Promise<ApiKey | undefined> {
+export async function createApiKey(name: string): Promise<ApiKey | undefined> {
 	try {
 		const res = await fetch(`${import.meta.env.VITE_WEB_API_URL}/apikeys`, {
 			method: "POST",
 			credentials: "include",
+			body: JSON.stringify({
+				name,
+			}),
 		});
 
 		if (!res.ok) {

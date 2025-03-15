@@ -11,7 +11,7 @@ import (
 	"github.com/pl3lee/webjson/internal/database"
 )
 
-func (cfg *AuthConfig) createApiKey(ctx context.Context, userId uuid.UUID) (string, error) {
+func (cfg *AuthConfig) createApiKey(ctx context.Context, userId uuid.UUID, name string) (string, error) {
 	// Allocate space for 32 bytes (256 bits) of random data
 	random := make([]byte, 32)
 	_, err := rand.Read(random)
@@ -27,6 +27,7 @@ func (cfg *AuthConfig) createApiKey(ctx context.Context, userId uuid.UUID) (stri
 	_, err = cfg.Db.CreateApiKey(ctx, database.CreateApiKeyParams{
 		UserID:  userId,
 		KeyHash: apiKeyHash,
+		Name:    name,
 	})
 	if err != nil {
 		return "", fmt.Errorf("error in storing api key to database")

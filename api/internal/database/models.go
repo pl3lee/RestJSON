@@ -17,6 +17,7 @@ type ApiKey struct {
 	UserID     uuid.UUID
 	KeyHash    string
 	LastUsedAt time.Time
+	Name       string
 }
 
 type JsonFile struct {
