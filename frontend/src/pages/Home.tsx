@@ -6,6 +6,7 @@ import { Link } from "react-router";
 function Home() {
 	return (
 		<div className="text-red-500 flex flex-col align-middle">
+			<title>RestJSON</title>
 			<ModeToggle />
 			<Button asChild>
 				<Link to="/auth">Get Started</Link>
