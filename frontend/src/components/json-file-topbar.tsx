@@ -7,10 +7,19 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Check, Code, Edit2, FileJson } from "lucide-react";
+import {
+	AlertCircle,
+	Check,
+	Code,
+	Edit2,
+	FileJson,
+	Key,
+	KeyRound,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CodeBlock from "./code-block";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 
 interface JsonFileTopbarProps {
@@ -114,18 +123,31 @@ export default function JsonFileTopbar({
 						</DialogHeader>
 						<div className="space-y-4 py-4">
 							<p className="text-sm text-muted-foreground">
-								Use this endpoint to access your JSON data programmatically:
+								Use this endpoint to access your JSON data programmatically,
+								including your API key in the Authorization header:
 							</p>
 							<CodeBlock code={endpoint} />
 
 							<div className="space-y-2">
 								<h4 className="text-sm font-medium">Example usage:</h4>
 								<CodeBlock
-									code={`fetch("${endpoint}")
-  .then(response => response.json())
-  .then(data => console.log(data))`}
+									code={`const res = await fetch("${endpoint}", {
+	headers: {
+		Authorization: "Bearer YOUR_API_KEY"
+	}
+})
+const data = await res.json()
+console.log(data)
+`}
 								/>
 							</div>
+							<Alert>
+								<Key className="h-4 w-4" />
+								<AlertTitle>API Key</AlertTitle>
+								<AlertDescription>
+									You can get your API key in your account page
+								</AlertDescription>
+							</Alert>
 						</div>
 					</DialogContent>
 				</Dialog>
