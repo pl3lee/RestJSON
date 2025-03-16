@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/pl3lee/webjson/internal/database"
+	"github.com/pl3lee/restjson/internal/database"
 )
 
 func (cfg *AuthConfig) createApiKey(ctx context.Context, userId uuid.UUID, name string) (string, error) {

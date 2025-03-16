@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/pl3lee/webjson/internal/auth"
-	"github.com/pl3lee/webjson/internal/database"
-	"github.com/pl3lee/webjson/internal/utils"
+	"github.com/pl3lee/restjson/internal/auth"
+	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/utils"
 	"time"
 )
 

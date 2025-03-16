@@ -1,6 +1,6 @@
 package config
 
-import "github.com/pl3lee/webjson/internal/database"
+import "github.com/pl3lee/restjson/internal/database"
 
 type Config struct {
 	Port               string

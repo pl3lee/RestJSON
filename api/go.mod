@@ -1,4 +1,4 @@
-module github.com/pl3lee/webjson
+module github.com/pl3lee/restjson
 
 go 1.23.6
 
