@@ -220,6 +220,7 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 			r.Get("/{fileId}", jsonConfig.HandlerGetJson)
 			// TODO: auto generate routes, say
 			// GET /posts
+			r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
 			// GET /posts/:id
 			// POST /posts
 			// PUT /posts/:id
