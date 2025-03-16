@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pl3lee/webjson/internal/database"
+	"github.com/pl3lee/restjson/internal/database"
 )
 
 func generateSessionToken() (string, error) {

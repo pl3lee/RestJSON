@@ -2,7 +2,7 @@ package jsonfile
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/pl3lee/webjson/internal/database"
+	"github.com/pl3lee/restjson/internal/database"
 )
 
 type JsonConfig struct {

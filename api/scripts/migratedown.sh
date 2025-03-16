@@ -5,4 +5,4 @@ if [ -f .env ]; then
 fi
 
 cd sql/schema
-goose postgres $SHARED_DB_URL down
+goose postgres $DB_URL down

@@ -25,7 +25,7 @@ export function AppLayout() {
 			<header className="flex items-center justify-between border-b bg-background px-4 py-3 shadow-sm">
 				<div className="flex items-center">
 					<h1 className="text-md md:text-xl font-bold text-nowrap">
-						<Link to="/app">Web JSON</Link>
+						<Link to="/app">RestJSON</Link>
 					</h1>
 				</div>
 				<div className="flex items-center gap-1">

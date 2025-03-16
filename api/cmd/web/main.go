@@ -16,10 +16,10 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/pl3lee/webjson/internal/auth"
-	"github.com/pl3lee/webjson/internal/database"
-	"github.com/pl3lee/webjson/internal/jsonfile"
-	"github.com/pl3lee/webjson/internal/utils"
+	"github.com/pl3lee/restjson/internal/auth"
+	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/jsonfile"
+	"github.com/pl3lee/restjson/internal/utils"
 )
 
 type appConfig struct {

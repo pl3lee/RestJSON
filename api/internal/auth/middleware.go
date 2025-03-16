@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pl3lee/webjson/internal/utils"
+	"github.com/pl3lee/restjson/internal/utils"
 )
 
 type contextKey string
