@@ -7,15 +7,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-	AlertCircle,
-	Check,
-	Code,
-	Edit2,
-	FileJson,
-	Key,
-	KeyRound,
-} from "lucide-react";
+import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CodeBlock from "./code-block";
@@ -33,7 +25,7 @@ export default function JsonFileTopbar({
 	fileId,
 	fileName,
 	saved,
-	onRename = () => {},
+	onRename = () => { },
 }: JsonFileTopbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 
