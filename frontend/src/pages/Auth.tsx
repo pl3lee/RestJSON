@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { login } from "@/lib/api";
 import {
 	Card,
 	CardContent,
@@ -8,6 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { login } from "@/lib/api";
 
 export function Auth() {
 	return (
