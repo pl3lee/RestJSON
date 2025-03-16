@@ -222,6 +222,7 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 			// GET /posts
 			r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
 			// GET /posts/:id
+			r.Get("/{fileId}/{resource}/{id}", jsonConfig.HandlerGetResourceById)
 			// POST /posts
 			// PUT /posts/:id
 			// DELETE /posts/:id

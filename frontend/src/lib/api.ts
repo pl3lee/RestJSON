@@ -24,7 +24,15 @@ export type ApiKeyMetadata = {
 
 export async function fetchPublic() {
 	try {
-		const res = await fetch(`${import.meta.env.VITE_API_URL}/public`);
+		const res = await fetch(
+			`${import.meta.env.VITE_API_URL}/public/5ea0eb37-32fd-4f43-b8e3-c27eaba15e27/posts/1`,
+			{
+				headers: {
+					Authorization:
+						"Bearer 5e234fee8a6a491a97c47d1273e7c44df5e71c04e0223e6fbfed8114c910f835",
+				},
+			},
+		);
 
 		if (!res.ok) {
 			throw new Error("failed to fetch from public");
