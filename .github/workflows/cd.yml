@@ -26,7 +26,7 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-frontend:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/restjson-frontend:${{ github.sha }}
 
   build_api:
     name: Build api
@@ -50,7 +50,7 @@ jobs:
           context: ./api
           file: ${{ github.workspace }}/api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/webjson-api:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/restjson-api:${{ github.sha }}
 
   deploy_staging:
     name: Deploy to staging server
@@ -67,14 +67,14 @@ jobs:
 
       - name: Copy over migration schemas
         run: |
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./api/sql/schema/. billy@${{ secrets.DROPLET_IP }}:/home/billy/webjson/sql/schema
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./api/sql/schema/. billy@${{ secrets.DROPLET_IP }}:/home/billy/restjson/sql/schema
 
       - name: SSH and pull
         run: |
           ssh -o StrictHostKeyChecking=no billy@${{ secrets.DROPLET_IP }} << 'EOF'
-            cd /home/billy/webjson
-            docker run --rm --network host -v /home/billy/webjson/sql/schema:/migrations \
-              -e GOOSE_DRIVER="postgres" -e GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/webjson?sslmode=disable" kukymbr/goose-docker:3.24.1
+            cd /home/billy/restjson
+            docker run --rm --network host -v /home/billy/restjson/sql/schema:/migrations \
+              -e GOOSE_DRIVER="postgres" -e GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/restjson?sslmode=disable" kukymbr/goose-docker:3.24.1
             echo SHA=${{ github.sha }} > .env
             docker compose pull
             docker compose up -d
