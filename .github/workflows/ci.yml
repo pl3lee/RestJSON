@@ -83,16 +83,14 @@ jobs:
         working-directory: ./api
         run: go mod download
 
-      - name: Install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
-
       - name: Run tests
         working-directory: ./api
         run: go test -cover ./...
 
       - name: Security check
-        working-directory: ./api
-        run: gosec -exclude=G101 ./...
+        uses: securego/gosec@master
+        with:
+          args: "-exclude=G101 api/..."
 
   style_api:
     name: Style api
