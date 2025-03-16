@@ -25,7 +25,7 @@ export default function JsonFileTopbar({
 	fileId,
 	fileName,
 	saved,
-	onRename = () => { },
+	onRename = () => {},
 }: JsonFileTopbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 
