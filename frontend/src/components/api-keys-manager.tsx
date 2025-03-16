@@ -118,7 +118,7 @@ export default function ApiKeysManager() {
 					>
 						<DialogTrigger asChild>
 							<Button>
-								<Key className="mr-2 h-4 w-4" />
+								<Key className="h-4 w-4" />
 								Create API Key
 							</Button>
 						</DialogTrigger>
@@ -217,7 +217,7 @@ export default function ApiKeysManager() {
 												size="sm"
 												onClick={() => deleteApiKeyMutation.mutate(key.hash)}
 											>
-												<Trash2 className="h-4 w-4 mr-1" />
+												<Trash2 className="h-4 w-4" />
 												Delete
 											</Button>
 										</TableCell>
