@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
 	Dialog,
 	DialogContent,
@@ -8,10 +6,12 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit2, Code, FileJson, Check, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { AlertCircle, Check, Code, Edit2, FileJson } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "./ui/badge";
 import CodeBlock from "./code-block";
+import { Badge } from "./ui/badge";
 
 interface JsonFileTopbarProps {
 	fileId: string;

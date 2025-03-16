@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import CodeBlock from "./code-block";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
 import {
@@ -32,7 +33,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "./ui/table";
-import CodeBlock from "./code-block";
 
 export default function ApiKeysManager() {
 	const queryClient = useQueryClient();

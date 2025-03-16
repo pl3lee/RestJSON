@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 
 interface CodeBlockProps {
 	code: string;
