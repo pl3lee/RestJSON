@@ -63,15 +63,15 @@ export function AppLayout() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-56">
-							<DropdownMenuItem>
-								<User className="h-4 w-4" />
-								<span>
-									<Link to="/app/account">My Account</Link>
-								</span>
+							<DropdownMenuItem asChild>
+								<Link to="/app/account" className="flex flex-row">
+									<User className="h-4 w-4" />
+									<span>My Account</span>
+								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={() => logout()}>
-								<LogOut className="mr-2 h-4 w-4" />
+								<LogOut className="h-4 w-4" />
 								<span>Log out</span>
 							</DropdownMenuItem>
 						</DropdownMenuContent>
