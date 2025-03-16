@@ -50,6 +50,7 @@ export function App() {
 
 	return (
 		<div className="flex flex-col gap-5">
+			<title>Your JSON files - RestJSON</title>
 			<form
 				className="flex flex-row w-full gap-2"
 				onSubmit={(e) => {

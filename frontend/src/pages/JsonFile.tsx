@@ -32,6 +32,7 @@ export function JsonFile() {
 
 	return (
 		<div className="flex flex-col gap-2">
+			<title>Edit JSON - RestJSON</title>
 			<JsonFileTopbar
 				fileId={fileId!}
 				fileName={jsonMetadata!.fileName}
