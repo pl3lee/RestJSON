@@ -2,12 +2,14 @@ import { JsonFileEditor } from "@/components/json-file-editor";
 import JsonFileTopbar from "@/components/json-file-topbar";
 import { getJSONMetadata, renameJSONFile } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
 export function JsonFile() {
 	const { fileId } = useParams();
 	const queryClient = useQueryClient();
+	const [saved, setSaved] = useState(true);
 	const { data: jsonMetadata, isLoading: jsonMetadataLoading } = useQuery({
 		queryKey: [`jsonmetadata-${fileId}`],
 		queryFn: async () => await getJSONMetadata(fileId!),
@@ -36,10 +38,10 @@ export function JsonFile() {
 				onRename={(name: string) =>
 					renameMutation.mutate({ fileId: fileId!, name })
 				}
-				onFormat={() => {}}
+				saved={saved}
 			/>
 
-			<JsonFileEditor fileId={fileId!} />
+			<JsonFileEditor fileId={fileId!} setSaved={setSaved} />
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, Copy, Key, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "./ui/alert";
@@ -32,6 +32,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "./ui/table";
+import CodeBlock from "./code-block";
 
 export default function ApiKeysManager() {
 	const queryClient = useQueryClient();
@@ -96,10 +97,6 @@ export default function ApiKeysManager() {
 		createApiKeyMutation.mutate(newKeyName);
 	};
 
-	const copyToClipboard = (text: string) => {
-		navigator.clipboard.writeText(text);
-		toast.success("Copied API key to clipboard");
-	};
 	if (apiKeysMetadataLoading) {
 		return <>Loading...</>;
 	}
@@ -176,19 +173,7 @@ export default function ApiKeysManager() {
 								</AlertDescription>
 							</Alert>
 							<div className="relative mt-2">
-								<div className="flex items-center justify-between rounded-md border border-input bg-muted p-3">
-									<code className="text-sm font-mono break-all">
-										{newApiKey}
-									</code>
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={() => newApiKey && copyToClipboard(newApiKey)}
-										className="ml-2"
-									>
-										<Copy className="h-4 w-4" />
-									</Button>
-								</div>
+								<CodeBlock code={newApiKey!} />
 							</div>
 							<DialogFooter>
 								<Button

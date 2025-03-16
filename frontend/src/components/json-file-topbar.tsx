@@ -1,5 +1,3 @@
-import type React from "react";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,21 +8,23 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Edit2, Code, FileJson } from "lucide-react";
+import { Edit2, Code, FileJson, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "./ui/badge";
+import CodeBlock from "./code-block";
 
 interface JsonFileTopbarProps {
 	fileId: string;
 	fileName: string;
+	saved: boolean;
 	onRename: (newName: string) => void;
-	onFormat: () => void;
 }
 
 export default function JsonFileTopbar({
 	fileId,
 	fileName,
+	saved,
 	onRename = () => {},
-	onFormat = () => {},
 }: JsonFileTopbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 
@@ -52,6 +52,7 @@ export default function JsonFileTopbar({
 			setIsRenaming(false);
 		}
 	};
+
 	const endpoint = `${import.meta.env.VITE_API_URL}/public/${fileId}`;
 
 	return (
@@ -82,6 +83,21 @@ export default function JsonFileTopbar({
 						</Button>
 					</div>
 				)}
+				<div className="flex items-center gap-2 z-50">
+					{saved ? (
+						<Badge variant="outline" className="">
+							<Check className="h-4 w-4 text-green-500" />
+							<span className="text-sm text-green-500 font-medium">Saved</span>
+						</Badge>
+					) : (
+						<Badge variant="outline" className="">
+							<AlertCircle className="h-4 w-4 text-amber-500" />
+							<span className="text-sm text-amber-500 font-medium">
+								Unsaved
+							</span>
+						</Badge>
+					)}
+				</div>
 			</div>
 
 			<div className="flex items-center gap-2">
@@ -96,35 +112,23 @@ export default function JsonFileTopbar({
 						<DialogHeader>
 							<DialogTitle>API Endpoint</DialogTitle>
 						</DialogHeader>
-						<div className="space-y-4 py-4 w-full">
+						<div className="space-y-4 py-4">
 							<p className="text-sm text-muted-foreground">
 								Use this endpoint to access your JSON data programmatically:
 							</p>
-							<div className="w-full bg-muted p-3 rounded-md font-mono text-sm overflow-x-auto">
-								{endpoint}
-							</div>
+							<CodeBlock code={endpoint} />
 
 							<div className="space-y-2">
 								<h4 className="text-sm font-medium">Example usage:</h4>
-								<pre className="bg-muted p-3 rounded-md text-xs overflow-x-auto">
-									{`fetch("${endpoint}")
+								<CodeBlock
+									code={`fetch("${endpoint}")
   .then(response => response.json())
   .then(data => console.log(data))`}
-								</pre>
+								/>
 							</div>
 						</div>
 					</DialogContent>
 				</Dialog>
-
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onFormat}
-					className="gap-1"
-				>
-					<FileJson className="h-4 w-4" />
-					Format
-				</Button>
 			</div>
 		</div>
 	);

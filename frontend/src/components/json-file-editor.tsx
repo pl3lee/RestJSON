@@ -2,16 +2,15 @@ import { useTheme } from "@/components/theme-provider";
 import { getJSONFile, updateJSONFile } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { Card, CardHeader } from "./ui/card";
-import { AlertCircle, Check } from "lucide-react";
 
-export function JsonFileEditor({ fileId }: { fileId: string }) {
+export function JsonFileEditor({
+	fileId,
+	setSaved,
+}: { fileId: string; setSaved: (saved: boolean) => void }) {
 	const { theme } = useTheme();
 	const queryClient = useQueryClient();
-	const [saved, setSaved] = useState(true);
 	const { data: jsonFile, isLoading: jsonFileLoading } = useQuery({
 		queryKey: [`jsonfile-${fileId}`],
 		queryFn: async () => await getJSONFile(fileId!),
@@ -62,27 +61,24 @@ export function JsonFileEditor({ fileId }: { fileId: string }) {
 	}
 
 	return (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-end">
-				{saved ? (
-					<>
-						<Check className="h-4 w-4 text-green-500" />
-						<span className="text-sm text-green-500 font-medium">Saved</span>
-					</>
-				) : (
-					<>
-						<AlertCircle className="h-4 w-4 text-amber-500" />
-						<span className="text-sm text-amber-500 font-medium">Unsaved</span>
-					</>
-				)}
-			</CardHeader>
+		<div>
 			<Editor
 				height="90vh"
 				defaultLanguage="json"
 				defaultValue={jsonString}
 				theme={theme === "light" ? theme : "vs-dark"}
 				onChange={handleEditorChange}
+				options={{
+					minimap: { enabled: false },
+					formatOnPaste: true,
+					formatOnType: true,
+					scrollBeyondLastLine: false,
+					automaticLayout: true,
+					tabSize: 2,
+					wordWrap: "on",
+					wrappingIndent: "deepIndent",
+				}}
 			/>
-		</Card>
+		</div>
 	);
 }
