@@ -25,7 +25,7 @@ export default function JsonFileTopbar({
 	fileId,
 	fileName,
 	saved,
-	onRename = () => {},
+	onRename,
 }: JsonFileTopbarProps) {
 	const [isRenaming, setIsRenaming] = useState(false);
 
@@ -57,7 +57,7 @@ export default function JsonFileTopbar({
 	const endpoint = `${import.meta.env.VITE_API_URL}/public/${fileId}`;
 
 	return (
-		<div className="flex items-center justify-between w-full px-4 py-2 border-b bg-background">
+		<div className="flex justify-between w-full gap-2 px-4 py-2 border-b bg-background items-center flex-row">
 			<div className="flex items-center gap-2">
 				<FileJson className="h-5 w-5 text-muted-foreground" />
 
@@ -67,17 +67,19 @@ export default function JsonFileTopbar({
 						onChange={(e) => setNameInput(e.target.value)}
 						onBlur={handleRename}
 						onKeyDown={handleKeyDown}
-						className="h-8 w-64"
+						className="h-8"
 						autoFocus
 					/>
 				) : (
-					<div className="flex items-center gap-2">
-						<span className="font-medium">{fileName}</span>
+					<div className="flex items-center gap-2 flex-grow max-w-[30dvw]">
+						<span className="text-sm font-medium md:text-base text-nowrap overflow-hidden text-ellipsis">
+							{fileName}
+						</span>
 						<Button
 							variant="ghost"
 							size="icon"
 							onClick={handleRename}
-							className="h-8 w-8"
+							className="h-4 w-4"
 						>
 							<Edit2 className="h-4 w-4" />
 							<span className="sr-only">Rename</span>
@@ -86,10 +88,10 @@ export default function JsonFileTopbar({
 				)}
 				<div className="flex items-center gap-2 z-50">
 					{saved ? (
-						<Badge variant="outline" className="">
+						<div className="flex items-center gap-1">
 							<Check className="h-4 w-4 text-green-500" />
 							<span className="text-sm text-green-500 font-medium">Saved</span>
-						</Badge>
+						</div>
 					) : (
 						<Badge variant="outline" className="">
 							<AlertCircle className="h-4 w-4 text-amber-500" />
@@ -109,7 +111,7 @@ export default function JsonFileTopbar({
 							API
 						</Button>
 					</DialogTrigger>
-					<DialogContent>
+					<DialogContent className="overflow-y-auto max-h-screen">
 						<DialogHeader>
 							<DialogTitle>API Endpoint</DialogTitle>
 						</DialogHeader>

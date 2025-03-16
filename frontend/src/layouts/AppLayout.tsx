@@ -24,11 +24,11 @@ export function AppLayout() {
 		<div className="flex flex-col h-screen">
 			<header className="flex items-center justify-between border-b bg-background px-4 py-3 shadow-sm">
 				<div className="flex items-center">
-					<h1 className="text-xl font-bold">
+					<h1 className="text-md md:text-xl font-bold text-nowrap">
 						<Link to="/app">Web JSON</Link>
 					</h1>
 				</div>
-				<div className="flex items-center gap-4">
+				<div className="flex items-center gap-1">
 					<ModeToggle />
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -47,7 +47,7 @@ export function AppLayout() {
 									) : (
 										<>
 											<span className="font-medium">{user?.name}</span>
-											<span className="text-xs text-muted-foreground">
+											<span className="text-xs text-muted-foreground hidden sm:block">
 												{user?.email}
 											</span>
 										</>
