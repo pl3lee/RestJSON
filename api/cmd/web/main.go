@@ -188,6 +188,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
+			r.Use(jsonConfig.JsonFileContentMiddleware)
 
 			r.Get("/jsonfiles/{fileId}", jsonConfig.HandlerGetJson)
 			r.Get("/jsonfiles/{fileId}/metadata", jsonConfig.HandlerGetJsonMetadata)
@@ -216,12 +217,12 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
+			r.Use(jsonConfig.JsonFileContentMiddleware)
 
 			r.Get("/{fileId}", jsonConfig.HandlerGetJson)
 
 			r.Group(func(r chi.Router) {
 				r.Use(jsonConfig.ResourceMiddleware)
-				r.Use(jsonConfig.JsonFileContentMiddleware)
 
 				r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
 				// r.Put("/{fileId}/{resource}", jsonConfig.HandlerUpdateResource)

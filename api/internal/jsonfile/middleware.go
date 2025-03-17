@@ -2,7 +2,6 @@ package jsonfile
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -53,18 +52,13 @@ func (cfg *JsonConfig) JsonFileContentMiddleware(next http.Handler) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 		fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
-		fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
-
+		fileContents, err := cfg.getJsonFromS3(r.Context(), userId, fileMetadata.ID)
 		if err != nil {
-			utils.RespondWithError(w, http.StatusInternalServerError, "error getting file from s3", err)
+			utils.RespondWithError(w, http.StatusInternalServerError, "error getting json from s3", err)
 			return
 		}
-		var fileContentsMap map[string]any
-		if err := json.Unmarshal(fileContents, &fileContentsMap); err != nil {
-			utils.RespondWithError(w, http.StatusInternalServerError, "error unmarshalling json file", err)
-			return
-		}
-		ctx := context.WithValue(r.Context(), FileContentContextKey, fileContentsMap)
+
+		ctx := context.WithValue(r.Context(), FileContentContextKey, fileContents)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

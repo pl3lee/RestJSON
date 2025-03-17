@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/utils"
-	"time"
 )
 
 type CreateJsonRequest struct {
@@ -80,17 +81,12 @@ func (cfg *JsonConfig) HandlerUpdateJson(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
+	fileContents, err := cfg.getJsonFromS3(r.Context(), userId, fileMetadata.ID)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get updated json file from s3", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(fileContents); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error writing response", err)
-		return
-	}
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
 }
 
 func (cfg *JsonConfig) HandlerGetJsonMetadata(w http.ResponseWriter, r *http.Request) {
@@ -106,20 +102,8 @@ func (cfg *JsonConfig) HandlerGetJsonMetadata(w http.ResponseWriter, r *http.Req
 }
 
 func (cfg *JsonConfig) HandlerGetJson(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
-
-	fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get json file from s3", err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(fileContents); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error writing response", err)
-		return
-	}
+	fileContents := r.Context().Value(FileContentContextKey)
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
 }
 
 func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Request) {
