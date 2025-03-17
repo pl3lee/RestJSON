@@ -20,6 +20,7 @@ import (
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/jsonfile"
 	"github.com/pl3lee/restjson/internal/utils"
+	"github.com/redis/go-redis/v9"
 )
 
 type appConfig struct {
@@ -33,6 +34,7 @@ type appConfig struct {
 	s3Bucket           string
 	s3Region           string
 	s3Client           *s3.Client
+	rdb                *redis.Client
 }
 
 func loadAppConfig() *appConfig {
@@ -71,6 +73,14 @@ func loadAppConfig() *appConfig {
 	if s3Region == "" {
 		log.Fatal("S3_REGION not set")
 	}
+	redisUrl := os.Getenv("REDIS_URL")
+	if redisUrl == "" {
+		log.Fatal("REDIS_URL not set")
+	}
+	redisOpts, err := redis.ParseURL(redisUrl)
+	if err != nil {
+		log.Fatal("invalid redis url")
+	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
@@ -84,6 +94,8 @@ func loadAppConfig() *appConfig {
 	}
 	dbQueries := database.New(pgDb)
 
+	rdb := redis.NewClient(redisOpts)
+
 	cfg := &appConfig{
 		port:               port,
 		clientURL:          clientURL,
@@ -95,6 +107,7 @@ func loadAppConfig() *appConfig {
 		s3Bucket:           s3Bucket,
 		s3Region:           s3Region,
 		s3Client:           client,
+		rdb:                rdb,
 	}
 	return cfg
 }
@@ -106,6 +119,7 @@ func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 		GoogleClientID:     cfg.googleClientID,
 		GoogleClientSecret: cfg.googleClientSecret,
 		ClientURL:          cfg.clientURL,
+		Rdb:                cfg.rdb,
 	}
 	return authConfig
 }
@@ -118,6 +132,7 @@ func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
 		S3Bucket:  cfg.s3Bucket,
 		S3Region:  cfg.s3Region,
 		S3Client:  cfg.s3Client,
+		Rdb:       cfg.rdb,
 	}
 	return jsonConfig
 }
