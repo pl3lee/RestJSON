@@ -7,9 +7,17 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { login } from "@/lib/api";
+import { useNavigate } from "react-router";
 
 export function Auth() {
+	const navigate = useNavigate();
+	const { isLoggedIn } = useAuth();
+	if (isLoggedIn) {
+		navigate("/app");
+		return null;
+	}
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background  px-4 py-12 sm:px-6 lg:px-8">
 			<Card className="w-full max-w-md">
