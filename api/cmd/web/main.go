@@ -188,6 +188,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
+			r.Use(jsonConfig.JsonFileContentMiddleware)
 
 			r.Get("/jsonfiles/{fileId}", jsonConfig.HandlerGetJson)
 			r.Get("/jsonfiles/{fileId}/metadata", jsonConfig.HandlerGetJsonMetadata)
@@ -216,16 +217,27 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
+			r.Use(jsonConfig.JsonFileContentMiddleware)
 
 			r.Get("/{fileId}", jsonConfig.HandlerGetJson)
-			// TODO: auto generate routes, say
-			// GET /posts
-			r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
-			// GET /posts/:id
-			r.Get("/{fileId}/{resource}/{id}", jsonConfig.HandlerGetResourceById)
-			// POST /posts
-			// PUT /posts/:id
-			// DELETE /posts/:id
+
+			r.Group(func(r chi.Router) {
+				r.Use(jsonConfig.ResourceMiddleware)
+
+				r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
+				// r.Put("/{fileId}/{resource}", jsonConfig.HandlerUpdateResource)
+				// r.Patch("/{fileId}/{resource}", jsonConfig.HandlerPartialUpdateResource)
+
+				r.Group(func(r chi.Router) {
+					r.Use(jsonConfig.ResourceArrayMiddleware)
+
+					r.Get("/{fileId}/{resource}/{id}", jsonConfig.HandlerGetResourceItem)
+					r.Post("/{fileId}/{resource}", jsonConfig.HandlerCreateResourceItem)
+					r.Put("/{fileId}/{resource}/{id}", jsonConfig.HandlerUpdateResourceItem)
+					// r.Patch("/{fileId}/{resource}/{id}", jsonConfig.HandlerPartialUpdateResourceItem)
+					// r.Delete("/{fileId}/{resource}/{id}", jsonConfig.HandlerDeleteResourceItem)
+				})
+			})
 		})
 	})
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
