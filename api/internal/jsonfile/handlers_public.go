@@ -3,7 +3,9 @@ package jsonfile
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -124,6 +126,156 @@ func (cfg *JsonConfig) HandlerUpdateResourceItem(w http.ResponseWriter, r *http.
 		return
 	}
 	fileContents[resource] = items
+
+	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
+}
+
+func (cfg *JsonConfig) HandlerPartialUpdateResourceItem(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+	resource := chi.URLParam(r, "resource")
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	items, ok := r.Context().Value(ResourceArrayContextKey).([]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusInternalServerError, "resource is not a slice", nil)
+		return
+	}
+	var partialUpdate map[string]any
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&partialUpdate); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+	resourceId := chi.URLParam(r, "id")
+
+	foundResourceItem := false
+	for index, item := range items {
+		itemMap, ok := item.(map[string]any)
+		if ok {
+			id := fmt.Sprintf("%v", itemMap["id"])
+			if id == resourceId {
+				maps.Copy(itemMap, partialUpdate)
+				items[index] = itemMap
+				foundResourceItem = true
+			}
+		}
+	}
+	if !foundResourceItem {
+		utils.RespondWithError(w, http.StatusNotFound, "cannot find resource item with given id", nil)
+		return
+	}
+	fileContents[resource] = items
+
+	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
+}
+
+func (cfg *JsonConfig) HandlerDeleteResourceItem(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+	resource := chi.URLParam(r, "resource")
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	items, ok := r.Context().Value(ResourceArrayContextKey).([]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusInternalServerError, "resource is not a slice", nil)
+		return
+	}
+	resourceId := chi.URLParam(r, "id")
+
+	foundResourceItem := false
+	for index, item := range items {
+		itemMap, ok := item.(map[string]any)
+		if ok {
+			id := fmt.Sprintf("%v", itemMap["id"])
+			if id == resourceId {
+				items = slices.Delete(items, index, index+1)
+				foundResourceItem = true
+				break
+			}
+		}
+	}
+	if !foundResourceItem {
+		utils.RespondWithError(w, http.StatusNotFound, "cannot find resource item with given id", nil)
+		return
+	}
+	fileContents[resource] = items
+
+	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
+}
+
+func (cfg *JsonConfig) HandlerUpdateResource(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+	resource := chi.URLParam(r, "resource")
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	var updatedResource any
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&updatedResource); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+	fileContents[resource] = updatedResource
+
+	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, fileContents)
+}
+
+func (cfg *JsonConfig) HandlerPartialUpdateResource(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+	resource := chi.URLParam(r, "resource")
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	existingResource, ok := fileContents[resource].(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "resource is not a map", nil)
+		return
+	}
+	var partialUpdate map[string]any
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&partialUpdate); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+
+	maps.Copy(existingResource, partialUpdate)
+
+	fileContents[resource] = existingResource
 
 	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
 
