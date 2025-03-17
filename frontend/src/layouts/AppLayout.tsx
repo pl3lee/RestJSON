@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User } from "lucide-react";
+import { Home, LogOut, User } from "lucide-react";
 import { Link, Outlet, useNavigate } from "react-router";
 import { Toaster } from "sonner";
 
@@ -23,10 +23,16 @@ export function AppLayout() {
 	return (
 		<div className="flex flex-col h-screen">
 			<header className="flex items-center justify-between border-b bg-background px-4 py-3 shadow-sm">
-				<div className="flex items-center">
+				<div className="flex items-center gap-2">
 					<h1 className="text-md md:text-xl font-bold text-nowrap">
 						<Link to="/app">RestJSON</Link>
 					</h1>
+					<Button asChild variant="ghost" size="sm">
+						<Link to="/app">
+							<Home className="w-5 h-5" />
+							<span className="sr-only">Home</span>
+						</Link>
+					</Button>
 				</div>
 				<div className="flex items-center gap-1">
 					<ModeToggle />

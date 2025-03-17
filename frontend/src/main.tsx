@@ -8,8 +8,8 @@ import { AppLayout } from "./layouts/AppLayout.tsx";
 import { Account } from "./pages/Account.tsx";
 import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
-import Home from "./pages/Home.tsx";
 import { JsonFile } from "./pages/JsonFile.tsx";
+import { Landing } from "./pages/Landing.tsx";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +19,7 @@ createRoot(document.getElementById("root")!).render(
 			<ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
 				<BrowserRouter>
 					<Routes>
-						<Route index element={<Home />} />
+						<Route index element={<Landing />} />
 						<Route path="auth" element={<Auth />} />
 						<Route path="app" element={<AppLayout />}>
 							<Route index element={<App />} />
