@@ -28,6 +28,12 @@ type JsonMetadataResponse struct {
 	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
+type Route struct {
+	Method      string `json:"method"`
+	Url         string `json:"url"`
+	Description string `json:"description"`
+}
+
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 
@@ -176,4 +182,65 @@ func (cfg *JsonConfig) HandlerDeleteJsonFile(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+}
+
+func (cfg *JsonConfig) HandlerGetDynamicRoutes(w http.ResponseWriter, r *http.Request) {
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	var routes []Route
+	for key, val := range fileContents {
+		switch val.(type) {
+		case map[string]any:
+			routes = append(routes, Route{
+				Method:      "GET",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Gets the entire resource",
+			})
+			routes = append(routes, Route{
+				Method:      "PUT",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Replaces the entire resource",
+			})
+			routes = append(routes, Route{
+				Method:      "PATCH",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Partially updates the resource",
+			})
+		case []any:
+			routes = append(routes, Route{
+				Method:      "GET",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Gets the entire resource array",
+			})
+			routes = append(routes, Route{
+				Method:      "GET",
+				Url:         fmt.Sprintf("/%s/:id", key),
+				Description: "Gets a resource from resource array by id",
+			})
+			routes = append(routes, Route{
+				Method:      "POST",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Creates a new resource and adds it to the resource array",
+			})
+			routes = append(routes, Route{
+				Method:      "PUT",
+				Url:         fmt.Sprintf("/%s/:id", key),
+				Description: "Replaces a resource from resource array with id",
+			})
+			routes = append(routes, Route{
+				Method:      "PATCH",
+				Url:         fmt.Sprintf("/%s/:id", key),
+				Description: "Partially updates a resource from resource array with id",
+			})
+			routes = append(routes, Route{
+				Method:      "DELETE",
+				Url:         fmt.Sprintf("/%s/:id", key),
+				Description: "Deletes a resource from resource array with id",
+			})
+		}
+	}
+	utils.RespondWithJSON(w, http.StatusOK, routes)
 }

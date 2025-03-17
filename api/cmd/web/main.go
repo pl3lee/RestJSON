@@ -195,6 +195,8 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 			r.Patch("/jsonfiles/{fileId}", jsonConfig.HandlerRenameJsonFile)
 			r.Put("/jsonfiles/{fileId}", jsonConfig.HandlerUpdateJson)
 			r.Delete("/jsonfiles/{fileId}", jsonConfig.HandlerDeleteJsonFile)
+
+			r.Get("/jsonfiles/{fileId}/routes", jsonConfig.HandlerGetDynamicRoutes)
 		})
 	})
 

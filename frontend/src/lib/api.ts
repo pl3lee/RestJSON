@@ -22,6 +22,12 @@ export type ApiKeyMetadata = {
 	lastUsedAt: string;
 };
 
+export type Route = {
+	method: string;
+	url: string;
+	description: string;
+};
+
 export async function fetchPublic() {
 	try {
 		const res = await fetch(
@@ -300,5 +306,26 @@ export async function deleteApiKey(keyHash: string): Promise<void> {
 		}
 	} catch (e) {
 		console.error(e);
+	}
+}
+
+export async function getDynamicRoutes(fileId: string) {
+	try {
+		const res = await fetch(
+			`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}/routes`,
+			{
+				method: "GET",
+				credentials: "include",
+			},
+		);
+
+		if (!res.ok) {
+			throw new Error("Failed to delete JSON");
+		}
+		const data: Route[] = await res.json();
+		return data;
+	} catch (e) {
+		console.error(e);
+		return undefined;
 	}
 }
