@@ -2,8 +2,15 @@ import { ArrowRight, Code, Globe, Key, Edit, FileJson } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Typewriter } from "@/components/typewriter";
 import { Link } from "react-router";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function Landing() {
+	const handleScroll = (id: string) => {
+		const element = document.getElementById(id);
+		if (element) {
+			element.scrollIntoView({ behavior: "smooth" });
+		}
+	};
 	return (
 		<div className="flex min-h-screen flex-col">
 			<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -16,30 +23,43 @@ export function Landing() {
 					<nav className="hidden md:flex gap-6">
 						<Link
 							to="#features"
+							onClick={(e) => {
+								e.preventDefault();
+								handleScroll("features");
+							}}
 							className="text-sm font-medium transition-colors hover:text-primary"
 						>
 							Features
 						</Link>
 						<Link
 							to="#how-it-works"
+							onClick={(e) => {
+								e.preventDefault();
+								handleScroll("how-it-works");
+							}}
 							className="text-sm font-medium transition-colors hover:text-primary"
 						>
 							How It Works
 						</Link>
 						<Link
 							to="#use-cases"
+							onClick={(e) => {
+								e.preventDefault();
+								handleScroll("use-cases");
+							}}
 							className="text-sm font-medium transition-colors hover:text-primary"
 						>
 							Use Cases
 						</Link>
 					</nav>
 					<div className="flex items-center gap-4">
-						<Link to="/auth">
-							<Button variant="outline">Sign In</Button>
-						</Link>
-						<Link to="/auth">
-							<Button>Get Started</Button>
-						</Link>
+						<ModeToggle />
+						<Button variant="outline" asChild>
+							<Link to="/auth">Sign In</Link>
+						</Button>
+						<Button asChild className="hidden md:block">
+							<Link to="/auth">Get Started</Link>
+						</Button>
 					</div>
 				</div>
 			</header>
@@ -51,18 +71,21 @@ export function Landing() {
 							<div className="flex flex-col justify-center space-y-4">
 								<div className="space-y-2">
 									<h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-										Create JSON APIs for{" "}
-										<Typewriter
-											words={[
-												"frontend prototyping",
-												"mobile apps",
-												"hackathons",
-												"MVPs",
-												"testing",
-												"learning",
-											]}
-										/>
-										{/*<span className="block mt-2">without the hassle</span>*/}
+										<div className="flex flex-col">
+											<span>Create JSON APIs for</span>
+											<div className="h-[1.2em] overflow-hidden">
+												<Typewriter
+													words={[
+														"frontend prototyping",
+														"mobile apps",
+														"hackathons",
+														"MVPs",
+														"testing",
+														"learning",
+													]}
+												/>
+											</div>
+										</div>
 									</h1>
 									<p className="max-w-[600px] text-muted-foreground md:text-xl">
 										RestJSON lets you create, edit, and deploy JSON-based APIs
@@ -70,16 +93,22 @@ export function Landing() {
 									</p>
 								</div>
 								<div className="flex flex-col gap-2 min-[400px]:flex-row">
-									<Link to="/auth">
-										<Button size="lg" className="gap-1">
+									<Button size="lg" className="gap-1" asChild>
+										<Link to="/auth">
 											Get Started <ArrowRight className="h-4 w-4" />
-										</Button>
-									</Link>
-									<Link to="#how-it-works">
-										<Button size="lg" variant="outline">
-											How It Works
-										</Button>
-									</Link>
+										</Link>
+									</Button>
+									<Button
+										size="lg"
+										variant="outline"
+										asChild
+										onClick={(e) => {
+											e.preventDefault();
+											handleScroll("how-it-works");
+										}}
+									>
+										<Link to="#how-it-works">How It Works</Link>
+									</Button>
 								</div>
 							</div>
 							<div className="rounded-xl border bg-muted/50 p-4 md:p-6 lg:p-8 w-full overflow-hidden">
@@ -105,7 +134,7 @@ export function Landing() {
 										<p>Your API is ready at:</p>
 										<div className="overflow-x-auto">
 											<code className="rounded bg-muted px-1 py-0.5 font-mono text-sm">
-												https://restjson.app/api/your-username/users
+												{`${import.meta.env.VITE_API_URL}/public/abc123/users`}
 											</code>
 										</div>
 									</div>
@@ -276,18 +305,18 @@ export function Landing() {
 								</div>
 								<pre className="rounded-md bg-muted p-4 overflow-auto text-sm">
 									{`// Fetch all users
-fetch('https://restjson.app/api/your-username/users', {
+fetch('${import.meta.env.VITE_API_URL}/public/FILE_ID/users', {
   headers: {
-    'X-API-Key': 'your-api-key'
+    'Authorization': 'Bearer YOUR_API_KEY'
   }
 })
 .then(response => response.json())
 .then(data => console.log(data));
 
-// Get a specific user
-fetch('https://restjson.app/api/your-username/users/1', {
+// Get a specific user with id 1
+fetch('${import.meta.env.VITE_API_URL}/public/FILE_ID/users/1', {
   headers: {
-    'X-API-Key': 'your-api-key'
+    'Authorization': 'Bearer YOUR_API_KEY'
   }
 })
 .then(response => response.json())
@@ -367,15 +396,15 @@ fetch('https://restjson.app/api/your-username/users/1', {
 								Ready to simplify your API development?
 							</h2>
 							<p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-								Join thousands of developers who are saving time with RestJSON.
+								Click on the button below to get started.
 							</p>
 						</div>
 						<div className="mx-auto flex flex-col gap-2 min-[400px]:flex-row justify-center">
-							<Link to="/auth">
-								<Button size="lg" className="gap-1">
+							<Button size="lg" className="gap-1" asChild>
+								<Link to="/auth">
 									Get Started <ArrowRight className="h-4 w-4" />
-								</Button>
-							</Link>
+								</Link>
+							</Button>
 						</div>
 					</div>
 				</section>

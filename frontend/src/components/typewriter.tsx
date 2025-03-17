@@ -10,6 +10,7 @@ interface TypewriterProps {
 
 export function Typewriter({
 	words,
+
 	typingSpeed = 100,
 
 	deletingSpeed = 50,
@@ -61,5 +62,5 @@ export function Typewriter({
 		delayBetweenWords,
 	]);
 
-	return <span className="text-primary">{currentText}</span>;
+	return <span className="text-primary whitespace-nowrap">{currentText}</span>;
 }
