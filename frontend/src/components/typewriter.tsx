@@ -4,15 +4,12 @@ interface TypewriterProps {
 	words: string[];
 	typingSpeed?: number;
 	deletingSpeed?: number;
-
 	delayBetweenWords?: number;
 }
 
 export function Typewriter({
 	words,
-
 	typingSpeed = 100,
-
 	deletingSpeed = 50,
 	delayBetweenWords = 1500,
 }: TypewriterProps) {
