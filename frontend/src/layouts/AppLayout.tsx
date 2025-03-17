@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, User, Home } from "lucide-react";
+import { Home, LogOut, User } from "lucide-react";
 import { Link, Outlet, useNavigate } from "react-router";
 import { Toaster } from "sonner";
 

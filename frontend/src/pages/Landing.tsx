@@ -1,8 +1,8 @@
-import { ArrowRight, Code, Globe, Key, Edit, FileJson } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Typewriter } from "@/components/typewriter";
-import { Link } from "react-router";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Typewriter } from "@/components/typewriter";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Code, Edit, FileJson, Globe, Key } from "lucide-react";
+import { Link } from "react-router";
 
 export function Landing() {
 	const handleScroll = (id: string) => {

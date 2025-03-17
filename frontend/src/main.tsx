@@ -8,8 +8,8 @@ import { AppLayout } from "./layouts/AppLayout.tsx";
 import { Account } from "./pages/Account.tsx";
 import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
-import { Landing } from "./pages/Landing.tsx";
 import { JsonFile } from "./pages/JsonFile.tsx";
+import { Landing } from "./pages/Landing.tsx";
 
 const queryClient = new QueryClient();
 
