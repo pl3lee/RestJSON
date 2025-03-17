@@ -54,6 +54,20 @@ func (cfg *JsonConfig) uploadFileToS3(ctx context.Context, userId, fileId uuid.U
 	return nil
 }
 
+func (cfg *JsonConfig) getJsonFromS3(ctx context.Context, userId, fileId uuid.UUID) (any, error) {
+	data, err := cfg.getFileFromS3(ctx, userId, fileId)
+	if err != nil {
+		return nil, fmt.Errorf("getJsonFromS3: error getting file from S3: %w", err)
+	}
+
+	var result any
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("getJsonFromS3: error unmarshalling json: %w", err)
+	}
+
+	return result, nil
+}
+
 func (cfg *JsonConfig) getFileFromS3(ctx context.Context, userId, fileId uuid.UUID) ([]byte, error) {
 	s3Params := &s3.GetObjectInput{
 		Bucket: aws.String(cfg.S3Bucket),
