@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -71,40 +70,5 @@ func (cfg *JsonConfig) HandlerCreateResourceItem(w http.ResponseWriter, r *http.
 		return
 	}
 	items = append(items, newResource)
-
-	// marshal items to json
-	data, err := json.Marshal(items)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "failed to marshal items to JSON", err)
-		return
-	}
-
-	tempFile, err := os.CreateTemp("", fileMetadata.ID.String())
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "cannot create temp file", err)
-		return
-	}
-	defer os.Remove(tempFile.Name())
-	defer tempFile.Close()
-
-	// write json data to temp file
-	if _, err := tempFile.Write(data); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "cannot write to temp file", err)
-		return
-	}
-
-	// Reset the file pointer to the beginning
-	if _, err := tempFile.Seek(0, 0); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "cannot seek temp file", err)
-		return
-	}
-
-	// upload file to s3
-	if err := cfg.uploadFileToS3(r.Context(), userId, fileMetadata.ID, tempFile); err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading file to s3", err)
-		return
-	}
-
-	utils.RespondWithJSON(w, http.StatusCreated, newResource)
 
 }

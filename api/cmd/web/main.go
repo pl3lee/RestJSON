@@ -221,6 +221,7 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 
 			r.Group(func(r chi.Router) {
 				r.Use(jsonConfig.ResourceMiddleware)
+				r.Use(jsonConfig.JsonFileContentMiddleware)
 
 				r.Get("/{fileId}/{resource}", jsonConfig.HandlerGetResource)
 				// r.Put("/{fileId}/{resource}", jsonConfig.HandlerUpdateResource)

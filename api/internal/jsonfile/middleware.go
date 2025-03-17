@@ -2,6 +2,7 @@ package jsonfile
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -14,6 +15,7 @@ import (
 type contextKey string
 
 const FileMetadataContextKey contextKey = "fileId"
+const FileContentContextKey contextKey = "fileContent"
 const ResourceDataContextKey contextKey = "resourceData"
 const ResourceArrayContextKey contextKey = "resourceArray"
 
@@ -47,26 +49,39 @@ func (cfg *JsonConfig) JsonFileMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (cfg *JsonConfig) ResourceMiddleware(next http.Handler) http.Handler {
+func (cfg *JsonConfig) JsonFileContentMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 		fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
+		fileContents, err := cfg.getFileFromS3(r.Context(), userId, fileMetadata.ID)
+
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "error getting file from s3", err)
+			return
+		}
+		var fileContentsMap map[string]any
+		if err := json.Unmarshal(fileContents, &fileContentsMap); err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "error unmarshalling json file", err)
+			return
+		}
+		ctx := context.WithValue(r.Context(), FileContentContextKey, fileContentsMap)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (cfg *JsonConfig) ResourceMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fileContentsMap := r.Context().Value(FileContentContextKey).(map[string]any)
+
 		resource := chi.URLParam(r, "resource")
 
-		resourceData, err := cfg.getResourceFromS3File(r.Context(), userId, fileMetadata.ID, resource)
-		if err != nil {
-			switch err.(type) {
-			case *InternalServerError:
-				utils.RespondWithError(w, http.StatusInternalServerError, "internal server error", err)
-			case *NotFoundError:
-				utils.RespondWithError(w, http.StatusNotFound, "resource not found", err)
-			default:
-				utils.RespondWithError(w, http.StatusInternalServerError, "unknown error occurred", err)
-			}
+		resourceData, ok := fileContentsMap[resource]
+		if !ok {
+			utils.RespondWithError(w, http.StatusNotFound, "resource not found", nil)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ResourceDataContextKey, *resourceData)
+		ctx := context.WithValue(r.Context(), ResourceDataContextKey, resourceData)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
