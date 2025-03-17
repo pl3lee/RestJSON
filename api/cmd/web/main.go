@@ -233,7 +233,7 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 
 					r.Get("/{fileId}/{resource}/{id}", jsonConfig.HandlerGetResourceItem)
 					r.Post("/{fileId}/{resource}", jsonConfig.HandlerCreateResourceItem)
-					// r.Put("/{fileId}/{resource}/{id}", jsonConfig.HandlerUpdateResourceItem)
+					r.Put("/{fileId}/{resource}/{id}", jsonConfig.HandlerUpdateResourceItem)
 					// r.Patch("/{fileId}/{resource}/{id}", jsonConfig.HandlerPartialUpdateResourceItem)
 					// r.Delete("/{fileId}/{resource}/{id}", jsonConfig.HandlerDeleteResourceItem)
 				})
