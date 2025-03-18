@@ -64,6 +64,13 @@ Note: API access requires authentication with an API key, which can be obtained 
 - `PATCH /public/{fileId}/posts/1` - Update specific fields of post with id 1
 - `DELETE /public/{fileId}/posts/1` - Delete post with id 1
 
+## Built With
+- Frontend: React with Vite
+- Backend: Go
+- Database: PostgreSQL
+- File Storage: AWS S3
+- Cache: Redis
+
 ## Credits
 
 RestJSON is inspired by:
