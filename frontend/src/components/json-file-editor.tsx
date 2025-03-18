@@ -25,6 +25,9 @@ export function JsonFileEditor({
 			queryClient.invalidateQueries({
 				queryKey: [`jsonfile-${fileId}`],
 			});
+			queryClient.invalidateQueries({
+				queryKey: [`dynamic-${fileId}`],
+			});
 			setSaved(true);
 			toast.success("Changes saved successfully.");
 		},
