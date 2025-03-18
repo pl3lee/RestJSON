@@ -250,6 +250,17 @@ func (cfg *JsonConfig) HandlerGetDynamicRoutes(w http.ResponseWriter, r *http.Re
 				Url:         fmt.Sprintf("/%s/:id", key),
 				Description: "Deletes a resource from resource array with id",
 			})
+		case string, int, float64, bool, nil:
+			routes = append(routes, Route{
+				Method:      "GET",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Gets the entire resource",
+			})
+			routes = append(routes, Route{
+				Method:      "PUT",
+				Url:         fmt.Sprintf("/%s", key),
+				Description: "Replaces the entire resource",
+			})
 		}
 	}
 	utils.RespondWithJSON(w, http.StatusOK, routes)
