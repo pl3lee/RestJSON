@@ -30,4 +30,9 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
     
+  cache:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - 6379:6379
     
