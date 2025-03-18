@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 )
 
 func (cfg *JsonConfig) uploadJsonToS3(ctx context.Context, userId uuid.UUID, fileId uuid.UUID, payload any) error {
@@ -38,6 +40,13 @@ func (cfg *JsonConfig) uploadJsonToS3(ctx context.Context, userId uuid.UUID, fil
 	if err := cfg.uploadFileToS3(ctx, userId, fileId, tempFile); err != nil {
 		return fmt.Errorf("uploadJsonToS3: error uploading file to s3: %w", err)
 	}
+
+	// cache json file
+	cacheKey := fmt.Sprintf("json:%s:%s", userId.String(), fileId.String())
+	err = cfg.Rdb.Set(ctx, cacheKey, data, 24*time.Hour).Err()
+	if err != nil {
+		fmt.Printf("uploadJsonToS3: failed to cache JSON: %v\n", err)
+	}
 	return nil
 }
 
@@ -55,10 +64,30 @@ func (cfg *JsonConfig) uploadFileToS3(ctx context.Context, userId, fileId uuid.U
 }
 
 func (cfg *JsonConfig) getJsonFromS3(ctx context.Context, userId, fileId uuid.UUID) (any, error) {
+	// get from cache first
+	cacheKey := fmt.Sprintf("json:%s:%s", userId.String(), fileId.String())
+	cachedData, err := cfg.Rdb.Get(ctx, cacheKey).Bytes()
+	if err == nil {
+		// cache hit
+		var result any
+		if err := json.Unmarshal(cachedData, &result); err != nil {
+			fmt.Printf("getJsonFromS3: failed to unmarshal cached json: %v\n", err)
+		} else {
+			return result, nil
+		}
+	} else if err != redis.Nil {
+		// redis error, not just cache miss
+		fmt.Printf("getJsonFromS3: redis error: %v\n", err)
+	}
+
+	// cache miss or error
 	data, err := cfg.getFileFromS3(ctx, userId, fileId)
 	if err != nil {
 		return nil, fmt.Errorf("getJsonFromS3: error getting file from S3: %w", err)
 	}
+
+	// cache it
+	cfg.Rdb.Set(ctx, cacheKey, data, 24*time.Hour)
 
 	var result any
 	if err := json.Unmarshal(data, &result); err != nil {
@@ -69,6 +98,7 @@ func (cfg *JsonConfig) getJsonFromS3(ctx context.Context, userId, fileId uuid.UU
 }
 
 func (cfg *JsonConfig) getFileFromS3(ctx context.Context, userId, fileId uuid.UUID) ([]byte, error) {
+	fmt.Println("Getting data from S3")
 	s3Params := &s3.GetObjectInput{
 		Bucket: aws.String(cfg.S3Bucket),
 		Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), fileId.String())),
@@ -96,5 +126,10 @@ func (cfg *JsonConfig) deleteFileFromS3(ctx context.Context, userId, fileId uuid
 	if err != nil {
 		return fmt.Errorf("deleteFileFromS3: error deleting object frmo S3: %w", err)
 	}
+
+	// delete from cache
+	cacheKey := fmt.Sprintf("json:%s:%s", userId.String(), fileId.String())
+	cfg.Rdb.Del(ctx, cacheKey)
+
 	return nil
 }

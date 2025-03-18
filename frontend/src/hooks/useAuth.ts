@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { fetchMe, logout } from "../lib/api";
 
 export function useAuth() {
@@ -23,6 +24,9 @@ export function useAuth() {
 				throwOnError: false,
 				cancelRefetch: true,
 			});
+		},
+		onError: (error) => {
+			toast.error(error.message);
 		},
 	});
 
