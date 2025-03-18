@@ -24,6 +24,9 @@ export function JsonFile() {
 			});
 			toast.success("Renamed file successfully");
 		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
 	});
 
 	if (jsonMetadataLoading) {

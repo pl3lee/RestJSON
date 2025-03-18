@@ -37,6 +37,16 @@ type Route struct {
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 
+	existingJsonMetadata, err := cfg.Db.GetJsonFiles(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error checking number of json files", err)
+		return
+	}
+	if len(existingJsonMetadata) >= cfg.FileLimit {
+		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", cfg.FileLimit), err)
+		return
+	}
+
 	var createReq CreateJsonRequest
 	if err := json.NewDecoder(r.Body).Decode(&createReq); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "invalid request body", err)
@@ -53,7 +63,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	fileId := uuid.New()
 
 	emptyJson := map[string]any{}
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileId, emptyJson)
+	err = cfg.uploadJsonToS3(r.Context(), userId, fileId, emptyJson)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading empty JSON to s3", err)
 		return

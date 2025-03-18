@@ -28,6 +28,9 @@ export function JsonFileEditor({
 			setSaved(true);
 			toast.success("Changes saved successfully.");
 		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
 	});
 
 	const handleEditorChange = (value: string | undefined) => {

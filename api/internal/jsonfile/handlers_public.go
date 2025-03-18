@@ -15,24 +15,19 @@ import (
 )
 
 func (cfg *JsonConfig) HandlerGetResource(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
-	fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
 	resource := chi.URLParam(r, "resource")
-
-	resourceData, err := cfg.getResourceFromS3File(r.Context(), userId, fileMetadata.ID, resource)
-	if err != nil {
-		switch err.(type) {
-		case *InternalServerError:
-			utils.RespondWithError(w, http.StatusInternalServerError, "internal server error", err)
-		case *NotFoundError:
-			utils.RespondWithError(w, http.StatusNotFound, "resource not found", err)
-		default:
-			utils.RespondWithError(w, http.StatusInternalServerError, "unknown error occured", err)
-		}
+	fileContents, ok := r.Context().Value(FileContentContextKey).(map[string]any)
+	if !ok {
+		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
+		return
+	}
+	resourceData, ok := fileContents[resource]
+	if !ok {
+		utils.RespondWithError(w, http.StatusNotFound, "resource does not exist in json", nil)
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, *resourceData)
+	utils.RespondWithJSON(w, http.StatusOK, resourceData)
 }
 
 func (cfg *JsonConfig) HandlerGetResourceItem(w http.ResponseWriter, r *http.Request) {

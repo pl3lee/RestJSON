@@ -59,6 +59,9 @@ export default function ApiKeysManager() {
 			// Reset the form
 			setNewKeyName("");
 		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
 	});
 
 	const deleteApiKeyMutation = useMutation({
@@ -68,6 +71,9 @@ export default function ApiKeysManager() {
 				queryKey: ["apikeysmetadata"],
 			});
 			toast.success("API Key successfully deleted");
+		},
+		onError: (error) => {
+			toast.error(error.message);
 		},
 	});
 	const [newKeyName, setNewKeyName] = useState("");

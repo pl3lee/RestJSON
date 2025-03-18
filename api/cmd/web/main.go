@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -35,6 +36,7 @@ type appConfig struct {
 	s3Region           string
 	s3Client           *s3.Client
 	rdb                *redis.Client
+	fileLimit          int
 }
 
 func loadAppConfig() *appConfig {
@@ -81,6 +83,14 @@ func loadAppConfig() *appConfig {
 	if err != nil {
 		log.Fatal("invalid redis url")
 	}
+	fileLimitStr := os.Getenv("FILE_LIMIT_PER_USER")
+	if fileLimitStr == "" {
+		log.Fatal("invalid file limit")
+	}
+	fileLimit, err := strconv.Atoi(fileLimitStr)
+	if err != nil {
+		log.Fatal("file limit should be an integer")
+	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
@@ -108,6 +118,7 @@ func loadAppConfig() *appConfig {
 		s3Region:           s3Region,
 		s3Client:           client,
 		rdb:                rdb,
+		fileLimit:          fileLimit,
 	}
 	return cfg
 }
@@ -133,6 +144,7 @@ func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
 		S3Region:  cfg.s3Region,
 		S3Client:  cfg.s3Client,
 		Rdb:       cfg.rdb,
+		FileLimit: cfg.fileLimit,
 	}
 	return jsonConfig
 }

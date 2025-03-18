@@ -26,14 +26,17 @@ export function App() {
 			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 			setNewFileName("");
 		},
-		onError: () => {
-			toast.error("An error occurred, check console for details");
+		onError: (error) => {
+			toast.error(error.message);
 		},
 	});
 	const deleteMutation = useMutation({
 		mutationFn: deleteJSONFile,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
+		},
+		onError: (error) => {
+			toast.error(error.message);
 		},
 	});
 	if (isLoadingUser) {

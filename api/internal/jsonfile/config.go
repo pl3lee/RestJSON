@@ -14,4 +14,5 @@ type JsonConfig struct {
 	S3Region  string
 	S3Client  *s3.Client
 	Rdb       *redis.Client
+	FileLimit int
 }
