@@ -15,7 +15,7 @@ import { Toaster } from "sonner";
 
 export function AppLayout() {
 	const navigate = useNavigate();
-	const { user, error, isLoading, isLoggedIn, logout } = useAuth();
+	const { user, isError, isLoading, isLoggedIn, logout } = useAuth();
 	if (!isLoading && !isLoggedIn) {
 		navigate("/auth");
 		return null;
@@ -48,7 +48,7 @@ export function AppLayout() {
 											<Skeleton className="w-24 h-6" />
 											<Skeleton className="w-36 h-6" />
 										</>
-									) : error ? (
+									) : isError ? (
 										<span>Error loading user data</span>
 									) : (
 										<>

@@ -1,3 +1,6 @@
+import CodeBlock from "@/components/code-block";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -7,51 +10,65 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { type Route, getDynamicRoutes } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+	type Route,
+	getDynamicRoutes,
+	getJSONMetadata,
+	renameJSONFile,
+} from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import CodeBlock from "./code-block";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { Badge } from "./ui/badge";
 
 interface JsonFileTopbarProps {
 	fileId: string;
-	fileName: string;
 	saved: boolean;
-	onRename: (newName: string) => void;
 }
 
-export default function JsonFileTopbar({
-	fileId,
-	fileName,
-	saved,
-	onRename,
-}: JsonFileTopbarProps) {
+export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
+	const queryClient = useQueryClient();
+	const { data: jsonMetadata, isLoading: jsonMetadataLoading } = useQuery({
+		queryKey: [`jsonmetadata-${fileId}`],
+		queryFn: async () => await getJSONMetadata(fileId!),
+		enabled: !!fileId,
+	});
+
+	const renameMutation = useMutation({
+		mutationFn: renameJSONFile,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: [`jsonmetadata-${fileId}`],
+			});
+			toast.success("Renamed file successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+	});
 	const [isRenaming, setIsRenaming] = useState(false);
 
-	const [nameInput, setNameInput] = useState(fileName);
+	const [nameInput, setNameInput] = useState(
+		jsonMetadata ? jsonMetadata.fileName : "",
+	);
 
-	const handleRename = () => {
-		if (isRenaming) {
+	const handleRenameKeyDown = (e: React.KeyboardEvent | React.FocusEvent) => {
+		if (e.type === "keydown" && (e as React.KeyboardEvent).key === "Escape") {
+			setNameInput(jsonMetadata!.fileName);
+			setIsRenaming(false);
+		} else if (
+			e.type === "blur" ||
+			(e.type === "keydown" && (e as React.KeyboardEvent).key === "Enter")
+		) {
 			if (nameInput === "") {
 				toast.error("File name cannot be empty!");
 				return;
 			}
-			onRename(nameInput);
-			setIsRenaming(false);
-		} else {
-			setIsRenaming(true);
-		}
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter") {
-			onRename(nameInput);
-			setIsRenaming(false);
-		} else if (e.key === "Escape") {
-			setNameInput(fileName);
+			renameMutation.mutate({
+				name: nameInput,
+				fileId,
+			});
 			setIsRenaming(false);
 		}
 	};
@@ -79,20 +96,22 @@ export default function JsonFileTopbar({
 					<Input
 						value={nameInput}
 						onChange={(e) => setNameInput(e.target.value)}
-						onBlur={handleRename}
-						onKeyDown={handleKeyDown}
+						onBlur={handleRenameKeyDown}
+						onKeyDown={handleRenameKeyDown}
 						className="h-8"
 						autoFocus
 					/>
+				) : jsonMetadataLoading ? (
+					<Skeleton className="h-8 w-32" />
 				) : (
 					<div className="flex items-center gap-2 flex-grow max-w-[30dvw]">
 						<span className="text-sm font-medium md:text-base text-nowrap overflow-hidden text-ellipsis">
-							{fileName}
+							{jsonMetadata?.fileName}
 						</span>
 						<Button
 							variant="ghost"
 							size="icon"
-							onClick={handleRename}
+							onClick={() => setIsRenaming(true)}
 							className="h-4 w-4"
 						>
 							<Edit2 className="h-4 w-4" />
@@ -150,7 +169,7 @@ console.log(data)
 								/>
 							</div>
 							{routesLoading ? (
-								<p>Loading...</p>
+								<Skeleton className="h-24 w-full" />
 							) : (
 								routesData && (
 									<div className="space-y-2">

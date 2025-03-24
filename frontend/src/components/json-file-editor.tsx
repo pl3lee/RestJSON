@@ -1,4 +1,5 @@
 import { useTheme } from "@/components/theme-provider";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getJSONFile, updateJSONFile } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -63,7 +64,7 @@ export function JsonFileEditor({
 		1000,
 	);
 	if (jsonFileLoading) {
-		return <div>Loading...</div>;
+		return <Skeleton className="h-[90vh] w-full" />;
 	}
 
 	return (
@@ -84,6 +85,7 @@ export function JsonFileEditor({
 					wordWrap: "on",
 					wrappingIndent: "deepIndent",
 				}}
+				loading={<Skeleton className="h-[90vh] w-full" />}
 			/>
 		</div>
 	);
