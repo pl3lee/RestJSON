@@ -4,6 +4,7 @@ import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
+import { Skeleton } from "./ui/skeleton";
 
 export function JsonFileEditor({
 	fileId,
@@ -63,7 +64,7 @@ export function JsonFileEditor({
 		1000,
 	);
 	if (jsonFileLoading) {
-		return <div>Loading...</div>;
+		return <Skeleton className="h-90vh w-full" />;
 	}
 
 	return (
