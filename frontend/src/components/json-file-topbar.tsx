@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import CodeBlock from "./code-block";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
+import { Skeleton } from "./ui/skeleton";
 
 interface JsonFileTopbarProps {
 	fileId: string;
@@ -52,27 +53,22 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 		jsonMetadata ? jsonMetadata.fileName : "",
 	);
 
-	const handleRename = () => {
-		if (isRenaming) {
+	const handleRenameKeyDown = (e: React.KeyboardEvent | React.FocusEvent) => {
+		if (e.type === "keydown" && (e as React.KeyboardEvent).key === "Escape") {
+			setNameInput(jsonMetadata!.fileName);
+			setIsRenaming(false);
+		} else if (
+			e.type === "blur" ||
+			(e.type === "keydown" && (e as React.KeyboardEvent).key === "Enter")
+		) {
 			if (nameInput === "") {
 				toast.error("File name cannot be empty!");
 				return;
 			}
 			renameMutation.mutate({
 				name: nameInput,
-				fileId: fileId,
+				fileId,
 			});
-			setIsRenaming(false);
-		} else {
-			setIsRenaming(true);
-		}
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter") {
-			setIsRenaming(false);
-		} else if (e.key === "Escape") {
-			setNameInput(jsonMetadata!.fileName);
 			setIsRenaming(false);
 		}
 	};
@@ -100,11 +96,13 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 					<Input
 						value={nameInput}
 						onChange={(e) => setNameInput(e.target.value)}
-						onBlur={handleRename}
-						onKeyDown={handleKeyDown}
+						onBlur={handleRenameKeyDown}
+						onKeyDown={handleRenameKeyDown}
 						className="h-8"
 						autoFocus
 					/>
+				) : jsonMetadataLoading ? (
+					<Skeleton className="h-8 w-32" />
 				) : (
 					<div className="flex items-center gap-2 flex-grow max-w-[30dvw]">
 						<span className="text-sm font-medium md:text-base text-nowrap overflow-hidden text-ellipsis">
@@ -113,7 +111,7 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 						<Button
 							variant="ghost"
 							size="icon"
-							onClick={handleRename}
+							onClick={() => setIsRenaming(true)}
 							className="h-4 w-4"
 						>
 							<Edit2 className="h-4 w-4" />
