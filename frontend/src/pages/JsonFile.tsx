@@ -36,14 +36,7 @@ export function JsonFile() {
 	return (
 		<div className="flex flex-col gap-2">
 			<title>{`${jsonMetadata!.fileName} - RestJSON`}</title>
-			<JsonFileTopbar
-				fileId={fileId!}
-				fileName={jsonMetadata!.fileName}
-				onRename={(name: string) =>
-					renameMutation.mutate({ fileId: fileId!, name })
-				}
-				saved={saved}
-			/>
+			<JsonFileTopbar fileId={fileId!} saved={saved} />
 
 			<JsonFileEditor fileId={fileId!} setSaved={setSaved} />
 		</div>

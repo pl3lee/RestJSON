@@ -7,8 +7,13 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { type Route, getDynamicRoutes } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import {
+	type Route,
+	getDynamicRoutes,
+	getJSONMetadata,
+	renameJSONFile,
+} from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -18,20 +23,34 @@ import { Badge } from "./ui/badge";
 
 interface JsonFileTopbarProps {
 	fileId: string;
-	fileName: string;
 	saved: boolean;
-	onRename: (newName: string) => void;
 }
 
-export default function JsonFileTopbar({
-	fileId,
-	fileName,
-	saved,
-	onRename,
-}: JsonFileTopbarProps) {
+export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
+	const queryClient = useQueryClient();
+	const { data: jsonMetadata, isLoading: jsonMetadataLoading } = useQuery({
+		queryKey: [`jsonmetadata-${fileId}`],
+		queryFn: async () => await getJSONMetadata(fileId!),
+		enabled: !!fileId,
+	});
+
+	const renameMutation = useMutation({
+		mutationFn: renameJSONFile,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: [`jsonmetadata-${fileId}`],
+			});
+			toast.success("Renamed file successfully");
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+	});
 	const [isRenaming, setIsRenaming] = useState(false);
 
-	const [nameInput, setNameInput] = useState(fileName);
+	const [nameInput, setNameInput] = useState(
+		jsonMetadata ? jsonMetadata.fileName : "",
+	);
 
 	const handleRename = () => {
 		if (isRenaming) {
