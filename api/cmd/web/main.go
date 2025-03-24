@@ -20,6 +20,7 @@ import (
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/jsonfile"
+	"github.com/pl3lee/restjson/internal/ratelimit"
 	"github.com/pl3lee/restjson/internal/utils"
 	"github.com/redis/go-redis/v9"
 )
@@ -202,6 +203,8 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 	r.Get("/auth/google/callback", authConfig.HandlerGoogleCallback)
 
 	r.Group(func(r chi.Router) {
+		// middleware, capacity 10, refill rate 1, expiration 60 seconds
+		r.Use(ratelimit.TokenBucketRateLimiter(appConfig.rdb, 10, 1, 60))
 		r.Use(authConfig.SessionMiddleware)
 
 		r.Get("/me", authConfig.HandlerGetMe)
@@ -242,6 +245,8 @@ func publicRouter(authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) 
 	})
 	r.Use(corsPublic)
 	r.Group(func(r chi.Router) {
+		// middleware, capacity 5, refill rate 1, expiration 60 seconds
+		r.Use(ratelimit.TokenBucketRateLimiter(jsonConfig.Rdb, 5, 1, 60))
 		r.Use(authConfig.ApiKeyMiddleware)
 
 		r.Group(func(r chi.Router) {
