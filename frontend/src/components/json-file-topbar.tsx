@@ -1,3 +1,6 @@
+import CodeBlock from "@/components/code-block";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -7,6 +10,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type Route,
 	getDynamicRoutes,
@@ -17,10 +21,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import CodeBlock from "@/components/code-block";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface JsonFileTopbarProps {
 	fileId: string;

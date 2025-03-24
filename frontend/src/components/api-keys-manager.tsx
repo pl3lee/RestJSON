@@ -1,8 +1,3 @@
-import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import CodeBlock from "@/components/code-block";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -25,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
 	TableBody,
@@ -33,7 +29,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ApiKeysManager() {
 	const queryClient = useQueryClient();

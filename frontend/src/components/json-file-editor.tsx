@@ -1,10 +1,10 @@
 import { useTheme } from "@/components/theme-provider";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getJSONFile, updateJSONFile } from "@/lib/api";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export function JsonFileEditor({
 	fileId,

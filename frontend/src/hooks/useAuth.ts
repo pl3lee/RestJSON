@@ -1,6 +1,6 @@
+import { fetchMe, logout } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { fetchMe, logout } from "@/lib/api";
 
 export function useAuth() {
 	const queryClient = useQueryClient();
