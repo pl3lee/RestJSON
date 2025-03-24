@@ -40,7 +40,7 @@ export function App() {
 		},
 	});
 	if (isLoadingUser) {
-		return <div>Loading...</div>;
+		return <div>Loading user...</div>;
 	}
 	if (!isLoggedIn) {
 		navigate("/auth");
@@ -80,37 +80,37 @@ export function App() {
 					(jsonFiles.length === 0
 						? "No JSON files created yet."
 						: jsonFiles?.map((file) => (
-								<Card key={file.id}>
-									<CardContent className="flex flex-row justify-between items-center">
-										<Link
-											to={`/app/jsonfile/${file.id}`}
-											className="w-full h-full"
-										>
-											<div className="flex items-center gap-2">
-												<File className="h-5 w-5 text-primary" />
-												<span className="font-medium">{file.fileName}</span>
+							<Card key={file.id}>
+								<CardContent className="flex flex-row justify-between items-center">
+									<Link
+										to={`/app/jsonfile/${file.id}`}
+										className="w-full h-full"
+									>
+										<div className="flex items-center gap-2">
+											<File className="h-5 w-5 text-primary" />
+											<span className="font-medium">{file.fileName}</span>
+										</div>
+										<div className="mt-2 text-sm text-foreground">
+											<div className="flex items-center gap-1">
+												<CalendarDays className="h-3.5 w-3.5" />
+												<span>Modified: {formatDate(file.modifiedAt)}</span>
 											</div>
-											<div className="mt-2 text-sm text-foreground">
-												<div className="flex items-center gap-1">
-													<CalendarDays className="h-3.5 w-3.5" />
-													<span>Modified: {formatDate(file.modifiedAt)}</span>
-												</div>
-											</div>
-										</Link>
-										<Button
-											variant="destructive"
-											type="button"
-											onClick={(e) => {
-												e.stopPropagation();
-												deleteMutation.mutate(file.id);
-											}}
-											disabled={deleteMutation.isPending}
-										>
-											<Trash />
-										</Button>
-									</CardContent>
-								</Card>
-							)))}
+										</div>
+									</Link>
+									<Button
+										variant="destructive"
+										type="button"
+										onClick={(e) => {
+											e.stopPropagation();
+											deleteMutation.mutate(file.id);
+										}}
+										disabled={deleteMutation.isPending}
+									>
+										<Trash />
+									</Button>
+								</CardContent>
+							</Card>
+						)))}
 			</div>
 		</div>
 	);

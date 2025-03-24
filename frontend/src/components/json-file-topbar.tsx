@@ -169,7 +169,7 @@ console.log(data)
 								/>
 							</div>
 							{routesLoading ? (
-								<p>Loading...</p>
+								<Skeleton className="h-24 w-full" />
 							) : (
 								routesData && (
 									<div className="space-y-2">
