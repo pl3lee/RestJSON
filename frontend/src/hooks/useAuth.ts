@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { fetchMe, logout } from "../lib/api";
+import { fetchMe, logout } from "@/lib/api";
 
 export function useAuth() {
 	const queryClient = useQueryClient();
 	const {
 		data: user,
 		isLoading,
-		error,
+		isError,
 	} = useQuery({
 		queryKey: ["auth"],
 		queryFn: fetchMe,
@@ -33,7 +33,7 @@ export function useAuth() {
 	return {
 		user,
 		isLoading,
-		error,
+		isError,
 		logout: logoutMutation.mutate,
 		isLoggedIn: !!user,
 	};

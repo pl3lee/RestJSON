@@ -4,19 +4,29 @@ import { Input } from "@/components/ui/input";
 import { createJSONFile, deleteJSONFile, getAllJSONMetadata } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDays, File, Trash } from "lucide-react";
+import { AlertCircle, CalendarDays, File, Trash } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function App() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [newFileName, setNewFileName] = useState("");
-	const { user, isLoading: isLoadingUser, isLoggedIn } = useAuth();
-	const { data: jsonFiles, isLoading: isLoadingFiles } = useQuery({
+	const {
+		user,
+		isLoading: isLoadingUser,
+		isLoggedIn,
+		isError: userError,
+	} = useAuth();
+	const {
+		data: jsonFiles,
+		isLoading: isLoadingFiles,
+		isError: filesError,
+	} = useQuery({
 		queryKey: ["jsonfiles"],
 		queryFn: getAllJSONMetadata,
 		enabled: !!user,
@@ -40,7 +50,7 @@ export function App() {
 			toast.error(error.message);
 		},
 	});
-	if (!isLoggedIn) {
+	if (!isLoggedIn || userError) {
 		navigate("/auth");
 		return null;
 	}
@@ -48,6 +58,18 @@ export function App() {
 		const date = new Date(dateString);
 		return format(date, "MMM d, yyyy 'at' h:mm a");
 	};
+
+	if (filesError) {
+		return (
+			<Alert variant="destructive">
+				<AlertCircle className="h-4 w-4" />
+				<AlertTitle>Error</AlertTitle>
+				<AlertDescription>
+					Cannot fetch your files, please refresh or try again later.
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	return (
 		<div className="flex flex-col gap-5">
@@ -78,46 +100,50 @@ export function App() {
 					</form>
 					<div className="flex flex-col gap-2">
 						{isLoadingFiles ? (
-							<Skeleton className="h-24 w-full" />
+							<>
+								<Skeleton className="h-24 w-full" />
+								<Skeleton className="h-24 w-full" />
+								<Skeleton className="h-24 w-full" />
+							</>
 						) : (
 							!isLoadingFiles &&
 							jsonFiles &&
 							(jsonFiles.length === 0
 								? "No JSON files created yet."
 								: jsonFiles?.map((file) => (
-									<Card key={file.id}>
-										<CardContent className="flex flex-row justify-between items-center">
-											<Link
-												to={`/app/jsonfile/${file.id}`}
-												className="w-full h-full"
-											>
-												<div className="flex items-center gap-2">
-													<File className="h-5 w-5 text-primary" />
-													<span className="font-medium">{file.fileName}</span>
-												</div>
-												<div className="mt-2 text-sm text-foreground">
-													<div className="flex items-center gap-1">
-														<CalendarDays className="h-3.5 w-3.5" />
-														<span>
-															Modified: {formatDate(file.modifiedAt)}
-														</span>
+										<Card key={file.id}>
+											<CardContent className="flex flex-row justify-between items-center">
+												<Link
+													to={`/app/jsonfile/${file.id}`}
+													className="w-full h-full"
+												>
+													<div className="flex items-center gap-2">
+														<File className="h-5 w-5 text-primary" />
+														<span className="font-medium">{file.fileName}</span>
 													</div>
-												</div>
-											</Link>
-											<Button
-												variant="destructive"
-												type="button"
-												onClick={(e) => {
-													e.stopPropagation();
-													deleteMutation.mutate(file.id);
-												}}
-												disabled={deleteMutation.isPending}
-											>
-												<Trash />
-											</Button>
-										</CardContent>
-									</Card>
-								)))
+													<div className="mt-2 text-sm text-foreground">
+														<div className="flex items-center gap-1">
+															<CalendarDays className="h-3.5 w-3.5" />
+															<span>
+																Modified: {formatDate(file.modifiedAt)}
+															</span>
+														</div>
+													</div>
+												</Link>
+												<Button
+													variant="destructive"
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														deleteMutation.mutate(file.id);
+													}}
+													disabled={deleteMutation.isPending}
+												>
+													<Trash />
+												</Button>
+											</CardContent>
+										</Card>
+									)))
 						)}
 					</div>
 				</>

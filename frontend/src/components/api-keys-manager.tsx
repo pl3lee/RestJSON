@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import CodeBlock from "./code-block";
-import { Alert, AlertDescription } from "./ui/alert";
-import { Button } from "./ui/button";
+import CodeBlock from "@/components/code-block";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -13,7 +13,7 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "./ui/card";
+} from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -22,9 +22,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Table,
 	TableBody,
@@ -32,7 +32,8 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from "./ui/table";
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ApiKeysManager() {
 	const queryClient = useQueryClient();
@@ -103,10 +104,6 @@ export default function ApiKeysManager() {
 		createApiKeyMutation.mutate(newKeyName);
 	};
 
-	if (apiKeysMetadataLoading) {
-		return <>Loading...</>;
-	}
-
 	return (
 		<div className="container mx-auto py-10">
 			<Card>
@@ -117,87 +114,97 @@ export default function ApiKeysManager() {
 							Manage your API keys for accessing the API.
 						</CardDescription>
 					</div>
+					{apiKeysMetadataLoading ? (
+						<Skeleton className="h-10 w-32 rounded-md" />
+					) : (
+						<>
+							<Dialog
+								open={isCreateDialogOpen}
+								onOpenChange={setIsCreateDialogOpen}
+							>
+								<DialogTrigger asChild>
+									<Button>
+										<Key className="h-4 w-4" />
+										Create API Key
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Create a new API key</DialogTitle>
+										<DialogDescription>
+											Give your API key a name to help you identify it later.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="grid gap-4 py-4">
+										<div className="grid gap-2">
+											<Label htmlFor="name">API Key Name</Label>
+											<Input
+												id="name"
+												placeholder="e.g., Production API Key"
+												value={newKeyName}
+												onChange={(e) => setNewKeyName(e.target.value)}
+											/>
+										</div>
+									</div>
+									<DialogFooter>
+										<Button
+											variant="outline"
+											onClick={() => setIsCreateDialogOpen(false)}
+										>
+											Cancel
+										</Button>
+										<Button onClick={handleCreateApiKey}>Create API Key</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
 
-					<Dialog
-						open={isCreateDialogOpen}
-						onOpenChange={setIsCreateDialogOpen}
-					>
-						<DialogTrigger asChild>
-							<Button>
-								<Key className="h-4 w-4" />
-								Create API Key
-							</Button>
-						</DialogTrigger>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>Create a new API key</DialogTitle>
-								<DialogDescription>
-									Give your API key a name to help you identify it later.
-								</DialogDescription>
-							</DialogHeader>
-							<div className="grid gap-4 py-4">
-								<div className="grid gap-2">
-									<Label htmlFor="name">API Key Name</Label>
-									<Input
-										id="name"
-										placeholder="e.g., Production API Key"
-										value={newKeyName}
-										onChange={(e) => setNewKeyName(e.target.value)}
-									/>
-								</div>
-							</div>
-							<DialogFooter>
-								<Button
-									variant="outline"
-									onClick={() => setIsCreateDialogOpen(false)}
-								>
-									Cancel
-								</Button>
-								<Button onClick={handleCreateApiKey}>Create API Key</Button>
-							</DialogFooter>
-						</DialogContent>
-					</Dialog>
+							<Dialog
+								open={isNewKeyDialogOpen}
+								onOpenChange={setIsNewKeyDialogOpen}
+							>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Your new API key</DialogTitle>
+										<DialogDescription>
+											Please copy your API key now. You won't be able to see it
+											again.
+										</DialogDescription>
+									</DialogHeader>
 
-					<Dialog
-						open={isNewKeyDialogOpen}
-						onOpenChange={setIsNewKeyDialogOpen}
-					>
-						<DialogContent>
-							<DialogHeader>
-								<DialogTitle>Your new API key</DialogTitle>
-								<DialogDescription>
-									Please copy your API key now. You won't be able to see it
-									again.
-								</DialogDescription>
-							</DialogHeader>
-
-							<Alert variant="destructive" className="my-4">
-								<AlertTriangle className="h-4 w-4" />
-								<AlertDescription>
-									This API key will only be displayed once and cannot be
-									retrieved later.
-								</AlertDescription>
-							</Alert>
-							<div className="relative mt-2">
-								<CodeBlock code={newApiKey!} />
-							</div>
-							<DialogFooter>
-								<Button
-									onClick={() => {
-										setIsNewKeyDialogOpen(false);
-										setNewApiKey(null);
-									}}
-									className="mt-4"
-								>
-									<Check className="mr-2 h-4 w-4" />
-									I've copied my API key
-								</Button>
-							</DialogFooter>
-						</DialogContent>
-					</Dialog>
+									<Alert variant="destructive" className="my-4">
+										<AlertTriangle className="h-4 w-4" />
+										<AlertDescription>
+											This API key will only be displayed once and cannot be
+											retrieved later.
+										</AlertDescription>
+									</Alert>
+									<div className="relative mt-2">
+										<CodeBlock code={newApiKey!} />
+									</div>
+									<DialogFooter>
+										<Button
+											onClick={() => {
+												setIsNewKeyDialogOpen(false);
+												setNewApiKey(null);
+											}}
+											className="mt-4"
+										>
+											<Check className="mr-2 h-4 w-4" />
+											I've copied my API key
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+						</>
+					)}
 				</CardHeader>
 				<CardContent>
-					{apiKeysMetadata!.length === 0 ? (
+					{apiKeysMetadataLoading ? (
+						<div className="py-6">
+							<Skeleton className="h-12 w-full mb-4" />
+							<Skeleton className="h-12 w-full mb-4" />
+						</div>
+					) : apiKeysMetadata!.length === 0 ? (
 						<div className="text-center py-6 text-muted-foreground">
 							No API keys found. Create your first API key to get started.
 						</div>
