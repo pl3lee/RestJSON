@@ -65,11 +65,20 @@ Note: API access requires authentication with an API key, which can be obtained 
 - `DELETE /public/{fileId}/posts/1` - Delete post with id 1
 
 ## Built With
-- Frontend: React with Vite
-- Backend: Go
+### Frontend
+- Framework: React with Vite
+- Component Library: shadcn
+- CSS Framework: TailwindCSS
+- Code Formatter: BiomeJS
+- Code Editor: Monaco Editor
+
+### Backend
+- Framework: Go with Chi
 - Database: PostgreSQL
 - File Storage: AWS S3
 - Cache: Redis
+- Rate Limiting: Redis with Token Bucket Algorithm
+- Authentication: Google OAuth
 
 ## Credits
 
