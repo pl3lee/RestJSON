@@ -58,7 +58,10 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 				toast.error("File name cannot be empty!");
 				return;
 			}
-			onRename(nameInput);
+			renameMutation.mutate({
+				name: nameInput,
+				fileId: fileId,
+			});
 			setIsRenaming(false);
 		} else {
 			setIsRenaming(true);
@@ -67,10 +70,9 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter") {
-			onRename(nameInput);
 			setIsRenaming(false);
 		} else if (e.key === "Escape") {
-			setNameInput(fileName);
+			setNameInput(jsonMetadata!.fileName);
 			setIsRenaming(false);
 		}
 	};
@@ -106,7 +108,7 @@ export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
 				) : (
 					<div className="flex items-center gap-2 flex-grow max-w-[30dvw]">
 						<span className="text-sm font-medium md:text-base text-nowrap overflow-hidden text-ellipsis">
-							{fileName}
+							{jsonMetadata?.fileName}
 						</span>
 						<Button
 							variant="ghost"
