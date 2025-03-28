@@ -1,13 +1,14 @@
+import { DeleteFileButton } from "@/components/delete-file-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { createJSONFile, deleteJSONFile, getAllJSONMetadata } from "@/lib/api";
+import { createJSONFile, getAllJSONMetadata } from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { AlertCircle, CalendarDays, File, Trash } from "lucide-react";
+import { AlertCircle, CalendarDays, File } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ export function App() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [newFileName, setNewFileName] = useState("");
+
 	const {
 		user,
 		isLoading: isLoadingUser,
@@ -36,15 +38,6 @@ export function App() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 			setNewFileName("");
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
-	const deleteMutation = useMutation({
-		mutationFn: deleteJSONFile,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["jsonfiles"] });
 		},
 		onError: (error) => {
 			toast.error(error.message);
@@ -130,17 +123,7 @@ export function App() {
 														</div>
 													</div>
 												</Link>
-												<Button
-													variant="destructive"
-													type="button"
-													onClick={(e) => {
-														e.stopPropagation();
-														deleteMutation.mutate(file.id);
-													}}
-													disabled={deleteMutation.isPending}
-												>
-													<Trash />
-												</Button>
+												<DeleteFileButton fileId={file.id} />
 											</CardContent>
 										</Card>
 									)))
