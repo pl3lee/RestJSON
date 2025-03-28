@@ -20,7 +20,9 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { DeleteFileButton } from "./delete-file-button";
 
 interface JsonFileTopbarProps {
 	fileId: string;
@@ -28,6 +30,7 @@ interface JsonFileTopbarProps {
 }
 
 export default function JsonFileTopbar({ fileId, saved }: JsonFileTopbarProps) {
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { data: jsonMetadata, isLoading: jsonMetadataLoading } = useQuery({
 		queryKey: [`jsonmetadata-${fileId}`],
@@ -190,6 +193,12 @@ console.log(data)
 						</div>
 					</DialogContent>
 				</Dialog>
+				{jsonMetadata && (
+					<DeleteFileButton
+						fileId={jsonMetadata!.id}
+						onDeleteSuccess={() => navigate("/app")}
+					/>
+				)}
 			</div>
 		</div>
 	);
