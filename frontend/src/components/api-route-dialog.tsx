@@ -49,7 +49,7 @@ export function ApiRouteDialog({ fileId }: { fileId: string }) {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
-				className="overflow-y-auto max-h-screen min-w-full"
+				className="overflow-y-auto max-h-[80dvh] min-w-full"
 				aria-describedby="dialog-description"
 			>
 				<DialogHeader>
