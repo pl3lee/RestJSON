@@ -1,15 +1,45 @@
+import CodeBlock from "@/components/code-block";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getJSONMetadata, renameJSONFile } from "@/lib/api/jsonFiles";
+import {
+	getDynamicRoutes,
+	getJSONMetadata,
+	renameJSONFile,
+} from "@/lib/api/jsonFiles";
+import type { Route } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Check, Edit2, FileJson } from "lucide-react";
+import {
+	AlertCircle,
+	Check,
+	Code,
+	Copy,
+	Edit2,
+	FileJson,
+	Key,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { ApiRouteDialog } from "./api-route-dialog";
 import { DeleteFileButton } from "./delete-file-button";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Card } from "./ui/card";
+import { cn } from "@/lib/utils";
+import { ApiRouteDialog } from "./api-route-dialog";
 
 interface JsonFileTopbarProps {
 	fileId: string;
