@@ -29,7 +29,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api";
+import { createApiKey, deleteApiKey, getAllApiKeys } from "@/lib/api/apiKeys";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
 import { useState } from "react";

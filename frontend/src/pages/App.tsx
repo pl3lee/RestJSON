@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { createJSONFile, getAllJSONMetadata } from "@/lib/api";
+import { createJSONFile, getAllJSONMetadata } from "@/lib/api/jsonFiles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { AlertCircle, CalendarDays, File } from "lucide-react";
@@ -104,29 +104,29 @@ export function App() {
 							(jsonFiles.length === 0
 								? "No JSON files created yet."
 								: jsonFiles?.map((file) => (
-										<Card key={file.id}>
-											<CardContent className="flex flex-row justify-between items-center">
-												<Link
-													to={`/app/jsonfile/${file.id}`}
-													className="w-full h-full"
-												>
-													<div className="flex items-center gap-2">
-														<File className="h-5 w-5 text-primary" />
-														<span className="font-medium">{file.fileName}</span>
+									<Card key={file.id}>
+										<CardContent className="flex flex-row justify-between items-center">
+											<Link
+												to={`/app/jsonfile/${file.id}`}
+												className="w-full h-full"
+											>
+												<div className="flex items-center gap-2">
+													<File className="h-5 w-5 text-primary" />
+													<span className="font-medium">{file.fileName}</span>
+												</div>
+												<div className="mt-2 text-sm text-foreground">
+													<div className="flex items-center gap-1">
+														<CalendarDays className="h-3.5 w-3.5" />
+														<span>
+															Modified: {formatDate(file.modifiedAt)}
+														</span>
 													</div>
-													<div className="mt-2 text-sm text-foreground">
-														<div className="flex items-center gap-1">
-															<CalendarDays className="h-3.5 w-3.5" />
-															<span>
-																Modified: {formatDate(file.modifiedAt)}
-															</span>
-														</div>
-													</div>
-												</Link>
-												<DeleteFileButton fileId={file.id} />
-											</CardContent>
-										</Card>
-									)))
+												</div>
+											</Link>
+											<DeleteFileButton fileId={file.id} />
+										</CardContent>
+									</Card>
+								)))
 						)}
 					</div>
 				</>

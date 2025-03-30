@@ -1,6 +1,6 @@
 import { useTheme } from "@/components/theme-provider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getJSONFile, updateJSONFile } from "@/lib/api";
+import { getJSONFile, updateJSONFile } from "@/lib/api/jsonFiles";
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import type { FileMetadata } from "@/lib/types";
+import type { FileMetadata, Route } from "@/lib/types";
 
 export async function createJSONFile(fileName: string): Promise<FileMetadata> {
 	const res = await fetch(`${import.meta.env.VITE_API_URL}/jsonfiles`, {
@@ -137,4 +137,22 @@ export async function deleteJSONFile(fileId: string): Promise<void> {
 	}
 
 	return;
+}
+
+export async function getDynamicRoutes(fileId: string): Promise<Route[]> {
+	const res = await fetch(
+		`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}/routes`,
+		{
+			method: "GET",
+			credentials: "include",
+		},
+	);
+
+	if (!res.ok) {
+		const errorData = await res.json();
+		const error = errorData.error;
+		throw new Error(error);
+	}
+	const data: Route[] = await res.json();
+	return data;
 }

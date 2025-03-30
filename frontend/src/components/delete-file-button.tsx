@@ -6,7 +6,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteJSONFile } from "@/lib/api";
+import { deleteJSONFile } from "@/lib/api/jsonFiles";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export function DeleteFileButton({
 	fileId,
-	onDeleteSuccess = () => {},
+	onDeleteSuccess = () => { },
 }: { fileId: string; onDeleteSuccess?: () => void }) {
 	const queryClient = useQueryClient();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
