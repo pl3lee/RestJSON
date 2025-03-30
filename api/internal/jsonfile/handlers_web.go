@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"time"
 
@@ -202,6 +203,11 @@ func (cfg *JsonConfig) HandlerGetDynamicRoutes(w http.ResponseWriter, r *http.Re
 	}
 	var routes []Route
 	for key, val := range fileContents {
+		if strings.Contains(key, " ") {
+			// skip keys with spaces, for example "hello world"
+			// since this results in invalid url
+			continue
+		}
 		switch val.(type) {
 		case map[string]any:
 			routes = append(routes, Route{
