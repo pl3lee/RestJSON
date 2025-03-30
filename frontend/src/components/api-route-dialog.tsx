@@ -2,8 +2,7 @@ import { getDynamicRoutes } from "@/lib/api/jsonFiles";
 import type { Route } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Code, Copy, Key } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Code, Key } from "lucide-react";
 import CodeBlock from "./code-block";
 import {
 	Accordion,
@@ -91,6 +90,13 @@ console.log(data)
 								<h4 className="text-base font-medium">
 									Dynamic routes generated:
 								</h4>
+								<Alert>
+									<AlertCircle className="h-4 w-4" />
+									<AlertTitle>
+										Endpoint won't be generated if the resource contains
+										whitespace!
+									</AlertTitle>
+								</Alert>
 								<ApiRouteCollection fileId={fileId} routes={routesData} />
 							</div>
 						)
@@ -113,25 +119,18 @@ function ApiRoute({
 	url: string;
 	defaultOpen?: boolean;
 }) {
-	const [copied, setCopied] = useState(false);
-
-	const copyToClipboard = () => {
-		navigator.clipboard.writeText(url);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-	};
-
+	const methodBadge = (
+		<Badge className={cn("font-mono font-bold", methodColors[method])}>
+			{method}
+		</Badge>
+	);
 	return (
 		<Card className="py-0">
 			<Accordion type="single" collapsible>
 				<AccordionItem value={`${method}-${endpoint}`}>
 					<AccordionTrigger className="py-4 px-4 hover:no-underline">
 						<div className="flex items-center gap-3 py-0">
-							<Badge
-								className={cn("font-mono font-bold", methodColors[method])}
-							>
-								{method}
-							</Badge>
+							{methodBadge}
 							<span className="font-medium text-gray-800 dark:text-gray-200">
 								{endpoint}
 							</span>
@@ -140,44 +139,7 @@ function ApiRoute({
 					<AccordionContent className="px-4 pb-4 pt-1">
 						<div className="space-y-3">
 							<p className="text-foreground">{description}</p>
-							<div className="relative">
-								<div className="p-3 bg-muted rounded-md font-mono text-sm overflow-x-auto">
-									<div className="flex items-center gap-2">
-										<span
-											className={cn(
-												"font-bold",
-
-												method === "GET"
-													? "text-emerald-600 dark:text-emerald-400"
-													: method === "POST"
-														? "text-blue-600 dark:text-blue-400"
-														: method === "PUT"
-															? "text-amber-600 dark:text-amber-400"
-															: method === "DELETE"
-																? "text-red-600 dark:text-red-400"
-																: "text-purple-600 dark:text-purple-400",
-											)}
-										>
-											{method}
-										</span>
-										<span className="text-gray-700 dark:text-gray-300">
-											{url}
-										</span>
-									</div>
-								</div>
-								<Button
-									variant="ghost"
-									size="icon"
-									className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700"
-									onClick={copyToClipboard}
-								>
-									{copied ? (
-										<Check className="h-4 w-4 text-green-500" />
-									) : (
-										<Copy className="h-4 w-4 text-gray-500" />
-									)}
-								</Button>
-							</div>
+							<CodeBlock code={url} prependComponent={methodBadge} />
 						</div>
 					</AccordionContent>
 				</AccordionItem>

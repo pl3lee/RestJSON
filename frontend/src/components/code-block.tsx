@@ -1,13 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface CodeBlockProps {
 	code: string;
 	className?: string;
+	prependComponent?: ReactNode;
 }
 
-export default function CodeBlock({ code, className }: CodeBlockProps) {
+export default function CodeBlock({
+	code,
+	className,
+	prependComponent,
+}: CodeBlockProps) {
 	const [copied, setCopied] = useState(false);
 
 	const copyToClipboard = async () => {
@@ -37,7 +42,8 @@ export default function CodeBlock({ code, className }: CodeBlockProps) {
 				)}
 			</Button>
 
-			<pre className="overflow-x-auto p-4 text-sm font-mono pr-12">
+			<pre className="overflow-x-auto p-4 text-sm font-mono pr-12 flex flex-row gap-2 items-center">
+				{prependComponent && <div>{prependComponent}</div>}
 				<code className="whitespace-pre-wrap break-all">{code}</code>
 			</pre>
 		</div>
