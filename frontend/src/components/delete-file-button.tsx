@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export function DeleteFileButton({
 	fileId,
-	onDeleteSuccess = () => { },
+	onDeleteSuccess = () => {},
 }: { fileId: string; onDeleteSuccess?: () => void }) {
 	const queryClient = useQueryClient();
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
