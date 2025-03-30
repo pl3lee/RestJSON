@@ -1,4 +1,4 @@
-import type { ApiKey, ApiKeyMetadata, Route } from "@/lib/types";
+import type { ApiKey, ApiKeyMetadata } from "@/lib/types";
 
 export async function createApiKey(name: string): Promise<ApiKey> {
 	const res = await fetch(`${import.meta.env.VITE_API_URL}/apikeys`, {
@@ -46,22 +46,4 @@ export async function deleteApiKey(keyHash: string): Promise<void> {
 		const error = errorData.error;
 		throw new Error(error);
 	}
-}
-
-export async function getDynamicRoutes(fileId: string): Promise<Route[]> {
-	const res = await fetch(
-		`${import.meta.env.VITE_API_URL}/jsonfiles/${fileId}/routes`,
-		{
-			method: "GET",
-			credentials: "include",
-		},
-	);
-
-	if (!res.ok) {
-		const errorData = await res.json();
-		const error = errorData.error;
-		throw new Error(error);
-	}
-	const data: Route[] = await res.json();
-	return data;
 }
