@@ -132,7 +132,7 @@ func (cfg *JsonConfig) HandlerGetJsonFiles(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var jsonFilesResponse []JsonMetadataResponse
+	jsonFilesResponse := []JsonMetadataResponse{}
 	for _, file := range jsonFiles {
 		fileMetadata := JsonMetadataResponse{
 			ID:         file.ID,
@@ -201,7 +201,7 @@ func (cfg *JsonConfig) HandlerGetDynamicRoutes(w http.ResponseWriter, r *http.Re
 		utils.RespondWithError(w, http.StatusBadRequest, "json file is not a map", nil)
 		return
 	}
-	var routes []Route
+	routes := []Route{}
 	for key, val := range fileContents {
 		if strings.Contains(key, " ") {
 			// skip keys with spaces, for example "hello world"
