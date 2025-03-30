@@ -8,7 +8,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-import { login } from "@/lib/api";
+import { login } from "@/lib/api/auth";
 import { useNavigate } from "react-router";
 
 export function Auth() {

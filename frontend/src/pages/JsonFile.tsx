@@ -1,6 +1,6 @@
 import { JsonFileEditor } from "@/components/json-file-editor";
 import JsonFileTopbar from "@/components/json-file-topbar";
-import { getJSONMetadata } from "@/lib/api";
+import { getJSONMetadata } from "@/lib/api/jsonFiles";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";

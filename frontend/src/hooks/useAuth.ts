@@ -1,4 +1,4 @@
-import { fetchMe, logout } from "@/lib/api";
+import { fetchMe, logout } from "@/lib/api/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 

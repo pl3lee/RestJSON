@@ -12,11 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-	type Route,
 	getDynamicRoutes,
 	getJSONMetadata,
 	renameJSONFile,
-} from "@/lib/api";
+} from "@/lib/api/jsonFiles";
+import type { Route } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Check, Code, Edit2, FileJson, Key } from "lucide-react";
 import { useState } from "react";

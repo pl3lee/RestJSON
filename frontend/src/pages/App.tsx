@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { createJSONFile, getAllJSONMetadata } from "@/lib/api";
+import { createJSONFile, getAllJSONMetadata } from "@/lib/api/jsonFiles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { AlertCircle, CalendarDays, File } from "lucide-react";
