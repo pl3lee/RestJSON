@@ -92,10 +92,11 @@ console.log(data)
 								</h4>
 								<Alert>
 									<AlertCircle className="h-4 w-4" />
-									<AlertTitle>
-										Endpoint won't be generated if the resource contains
+									<AlertTitle>Missing endpoint?</AlertTitle>
+									<AlertDescription>
+										Endpoint won't be generated if the resource name contains
 										whitespace!
-									</AlertTitle>
+									</AlertDescription>
 								</Alert>
 								<ApiRouteCollection fileId={fileId} routes={routesData} />
 							</div>
