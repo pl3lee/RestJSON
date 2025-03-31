@@ -10,7 +10,7 @@ WHERE id=$1;
 
 -- name: UpdateSession :one
 UPDATE user_sessions
-SET expires_at=$2
+SET expires_at=$2, updated_at=NOW()
 WHERE id=$1
 RETURNING *;
 
