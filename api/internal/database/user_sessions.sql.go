@@ -78,7 +78,7 @@ func (q *Queries) StoreUserSession(ctx context.Context, arg StoreUserSessionPara
 
 const updateSession = `-- name: UpdateSession :one
 UPDATE user_sessions
-SET expires_at=$2
+SET expires_at=$2, updated_at=NOW()
 WHERE id=$1
 RETURNING id, user_id, created_at, updated_at, expires_at
 `
