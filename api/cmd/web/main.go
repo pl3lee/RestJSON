@@ -132,6 +132,9 @@ func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 		GoogleClientSecret: cfg.googleClientSecret,
 		ClientURL:          cfg.clientURL,
 		Rdb:                cfg.rdb,
+		S3Bucket:           cfg.s3Bucket,
+		S3Region:           cfg.s3Region,
+		S3Client:           cfg.s3Client,
 	}
 	return authConfig
 }
@@ -209,6 +212,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 
 		r.Get("/me", authConfig.HandlerGetMe)
 		r.Put("/logout", authConfig.HandlerLogout)
+		r.Delete("/users", authConfig.HandlerDeleteAccount)
 		r.Post("/apikeys", authConfig.HandlerCreateApiKey)
 		r.Get("/apikeys", authConfig.HandlerGetAllApiKeys)
 		r.Delete("/apikeys/{keyHash}", authConfig.HandlerDeleteApiKey)

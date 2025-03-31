@@ -128,9 +128,9 @@ func (cfg *AuthConfig) invalidateSession(ctx context.Context, sessionId string) 
 	return nil
 }
 
-// func (cfg *AuthConfig) invalidateAllSessions(ctx context.Context, userId uuid.UUID) error {
-// 	if err := cfg.Db.InvalidateAllSessions(ctx, userId); err != nil {
-// 		return fmt.Errorf("invalidateAllSessions: cannot invalidate all sessions: %w", err)
-// 	}
-// 	return nil
-// }
+func (cfg *AuthConfig) invalidateAllSessions(ctx context.Context, userId uuid.UUID) error {
+	if err := cfg.Db.InvalidateAllSessions(ctx, userId); err != nil {
+		return fmt.Errorf("invalidateAllSessions: cannot invalidate all sessions: %w", err)
+	}
+	return nil
+}
