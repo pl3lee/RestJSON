@@ -33,3 +33,18 @@ export async function logout(): Promise<void> {
 
 	return;
 }
+
+export async function deleteAccount(): Promise<void> {
+	const res = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
+		method: "DELETE",
+		credentials: "include",
+	});
+
+	if (!res.ok) {
+		const errorData = await res.json();
+		const error = errorData.error;
+		throw new Error(error);
+	}
+
+	return;
+}

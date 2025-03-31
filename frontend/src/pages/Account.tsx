@@ -1,3 +1,4 @@
+import { AccountManager } from "@/components/account-manager";
 import ApiKeysManager from "@/components/api-keys-manager";
 
 export function Account() {
@@ -5,6 +6,7 @@ export function Account() {
 		<div>
 			<title>Account - RestJSON</title>
 			<ApiKeysManager />
+			<AccountManager />
 		</div>
 	);
 }

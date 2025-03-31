@@ -14,3 +14,7 @@ WHERE id=$1;
 SELECT *
 FROM users
 WHERE provider_id=$1;
+
+-- name: DeleteUser :exec
+DELETE FROM users
+WHERE id=$1;

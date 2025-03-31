@@ -3,11 +3,14 @@ package auth
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/database"
@@ -241,4 +244,40 @@ func (cfg *AuthConfig) HandlerDeleteApiKey(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+}
+
+func (cfg *AuthConfig) HandlerDeleteAccount(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(UserIDContextKey).(uuid.UUID)
+
+	jsonFiles, err := cfg.Db.GetJsonFiles(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user json files", err)
+		return
+	}
+
+	// delete all json files from s3 that belongs to user
+	for _, file := range jsonFiles {
+		s3Params := &s3.DeleteObjectInput{
+			Bucket: aws.String(cfg.S3Bucket),
+			Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), file.ID.String())),
+		}
+		_, err := cfg.S3Client.DeleteObject(r.Context(), s3Params)
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "error deleting file from s3", err)
+			return
+		}
+
+		// delete from cache
+		cacheKey := fmt.Sprintf("json:%s:%s", userId.String(), file.ID.String())
+		cfg.Rdb.Del(r.Context(), cacheKey)
+	}
+
+	err = cfg.Db.DeleteUser(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot delete user from db", err)
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+
 }
