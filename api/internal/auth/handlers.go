@@ -272,8 +272,12 @@ func (cfg *AuthConfig) HandlerDeleteAccount(w http.ResponseWriter, r *http.Reque
 		cfg.Rdb.Del(r.Context(), cacheKey)
 	}
 
-	err = cfg.Db.DeleteUser(r.Context(), userId)
-	if err != nil {
+	if err := cfg.invalidateAllSessions(r.Context(), userId); err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot invalidate user sessions", err)
+		return
+	}
+
+	if err := cfg.Db.DeleteUser(r.Context(), userId); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot delete user from db", err)
 		return
 	}
