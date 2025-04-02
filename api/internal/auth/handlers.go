@@ -9,11 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/s3util"
 	"github.com/pl3lee/restjson/internal/utils"
 )
 
@@ -257,12 +256,7 @@ func (cfg *AuthConfig) HandlerDeleteAccount(w http.ResponseWriter, r *http.Reque
 
 	// delete all json files from s3 that belongs to user
 	for _, file := range jsonFiles {
-		s3Params := &s3.DeleteObjectInput{
-			Bucket: aws.String(cfg.S3Bucket),
-			Key:    aws.String(fmt.Sprintf("%s/%s.json", userId.String(), file.ID.String())),
-		}
-		_, err := cfg.S3Client.DeleteObject(r.Context(), s3Params)
-		if err != nil {
+		if err := s3util.DeleteFileFromS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, file.ID); err != nil {
 			utils.RespondWithError(w, http.StatusInternalServerError, "error deleting file from s3", err)
 			return
 		}
