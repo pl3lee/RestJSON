@@ -35,7 +35,7 @@ import { AlertTriangle, Check, Key, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function ApiKeysManager() {
+export function ApiKeysManager() {
 	const queryClient = useQueryClient();
 	const { data: apiKeysMetadata, isLoading: apiKeysMetadataLoading } = useQuery(
 		{
