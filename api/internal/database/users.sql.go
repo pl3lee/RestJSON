@@ -16,7 +16,7 @@ INSERT INTO users(provider_id, email, name)
 VALUES ($1, $2, $3)
 ON CONFLICT(provider_id)
 DO UPDATE SET email=$2, name=$3
-RETURNING id, provider_id, created_at, updated_at, email, name
+RETURNING id, provider_id, created_at, updated_at, email, name, stripe_customer_id
 `
 
 type CreateUserParams struct {
@@ -35,6 +35,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Name,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
@@ -49,8 +50,29 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getUserByCustomerId = `-- name: GetUserByCustomerId :one
+SELECT id, provider_id, created_at, updated_at, email, name, stripe_customer_id
+FROM users
+WHERE stripe_customer_id=$1
+`
+
+func (q *Queries) GetUserByCustomerId(ctx context.Context, stripeCustomerID string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByCustomerId, stripeCustomerID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.ProviderID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.Name,
+		&i.StripeCustomerID,
+	)
+	return i, err
+}
+
 const getUserById = `-- name: GetUserById :one
-SELECT id, provider_id, created_at, updated_at, email, name
+SELECT id, provider_id, created_at, updated_at, email, name, stripe_customer_id
 FROM users
 WHERE id=$1
 `
@@ -65,12 +87,13 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Name,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }
 
 const getUserByProviderId = `-- name: GetUserByProviderId :one
-SELECT id, provider_id, created_at, updated_at, email, name
+SELECT id, provider_id, created_at, updated_at, email, name, stripe_customer_id
 FROM users
 WHERE provider_id=$1
 `
@@ -85,6 +108,34 @@ func (q *Queries) GetUserByProviderId(ctx context.Context, providerID string) (U
 		&i.UpdatedAt,
 		&i.Email,
 		&i.Name,
+		&i.StripeCustomerID,
+	)
+	return i, err
+}
+
+const updateCustomerId = `-- name: UpdateCustomerId :one
+UPDATE users
+SET stripe_customer_id=$2, updated_at=NOW()
+WHERE id=$1
+RETURNING id, provider_id, created_at, updated_at, email, name, stripe_customer_id
+`
+
+type UpdateCustomerIdParams struct {
+	ID               uuid.UUID
+	StripeCustomerID string
+}
+
+func (q *Queries) UpdateCustomerId(ctx context.Context, arg UpdateCustomerIdParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateCustomerId, arg.ID, arg.StripeCustomerID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.ProviderID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.Name,
+		&i.StripeCustomerID,
 	)
 	return i, err
 }

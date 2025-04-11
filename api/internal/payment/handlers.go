@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/auth"
+	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/utils"
 	"github.com/redis/go-redis/v9"
 	"github.com/stripe/stripe-go/v82"
@@ -27,14 +28,17 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	stripeCustomerId, err := cfg.Rdb.Get(r.Context(), fmt.Sprintf("stripe:user:%s", userId)).Result()
-	if err == nil {
-		// cache hit, customer exists
-	} else if err == redis.Nil {
-		// cache miss, no customer exists
-		// create stripe customer
+	user, err := cfg.Db.GetUserById(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user from database", err)
+		return
+	}
+	stripeCustomerId := user.StripeCustomerID
+
+	// customer does not exist, create it in stripe
+	if stripeCustomerId == "" {
 		newCustomer, err := customer.New(&stripe.CustomerParams{
-			Email: stripe.String(userId.String()),
+			Email: stripe.String(user.Email),
 			Metadata: map[string]string{
 				"userId": userId.String(),
 			},
@@ -43,17 +47,16 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 			utils.RespondWithError(w, http.StatusInternalServerError, "error creating stripe customer", err)
 			return
 		}
-		// store in redis
+		// store in db
 		stripeCustomerId = newCustomer.ID
-		err = cfg.Rdb.Set(r.Context(), fmt.Sprintf("stripe:user:%s", userId), stripeCustomerId, 0).Err()
+		_, err = cfg.Db.UpdateCustomerId(r.Context(), database.UpdateCustomerIdParams{
+			ID:               user.ID,
+			StripeCustomerID: stripeCustomerId,
+		})
 		if err != nil {
-			log.Printf("failed to cache Stripe customer ID for user %s: %v", userId, err)
+			utils.RespondWithError(w, http.StatusInternalServerError, "error updating stripe customer", err)
+			return
 		}
-
-	} else {
-		// actual error
-		utils.RespondWithError(w, http.StatusInternalServerError, "error checking redis for stripe customer", err)
-		return
 	}
 
 	// create checkout session
@@ -76,5 +79,4 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 		return
 	}
 	http.Redirect(w, r, s.URL, http.StatusSeeOther)
-
 }

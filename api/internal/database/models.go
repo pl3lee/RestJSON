@@ -30,12 +30,13 @@ type JsonFile struct {
 }
 
 type User struct {
-	ID         uuid.UUID
-	ProviderID string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	Email      string
-	Name       string
+	ID               uuid.UUID
+	ProviderID       string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	Email            string
+	Name             string
+	StripeCustomerID string
 }
 
 type UserSession struct {
