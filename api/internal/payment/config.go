@@ -5,7 +5,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type JsonConfig struct {
+type PaymentConfig struct {
 	Db        *database.Queries
 	BaseURL   string
 	ClientURL string

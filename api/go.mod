@@ -30,5 +30,6 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/redis/go-redis/v9 v9.7.1 // indirect
+	github.com/stripe/stripe-go/v82 v82.0.0 // indirect
 	golang.org/x/oauth2 v0.26.0 // indirect
 )
