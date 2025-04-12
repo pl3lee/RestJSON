@@ -54,3 +54,4 @@ func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId str
 	cfg.Rdb.Set(ctx, fmt.Sprintf("stripe:customer:%s", customerId), subData, 0)
 	return subData
 }
+

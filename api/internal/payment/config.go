@@ -6,8 +6,9 @@ import (
 )
 
 type PaymentConfig struct {
-	Db        *database.Queries
-	BaseURL   string
-	ClientURL string
-	Rdb       *redis.Client
+	Db                  *database.Queries
+	BaseURL             string
+	ClientURL           string
+	Rdb                 *redis.Client
+	StripeWebhookSecret string
 }
