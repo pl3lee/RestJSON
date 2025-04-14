@@ -94,7 +94,7 @@ func loadAppConfig() *appConfig {
 	if err != nil {
 		log.Fatal("file limit should be an integer")
 	}
-	stripeWebhookSecret, err := os.Getenv("STRIPE_WEBHOOK_SECRET")
+	stripeWebhookSecret := os.Getenv("STRIPE_WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("STRIPE_WEBHOOK_SECRET not set")
 	}

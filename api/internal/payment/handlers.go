@@ -3,7 +3,6 @@ package payment
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -64,7 +63,7 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 		Customer: stripe.String(stripeCustomerId),
 		Mode:     stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			&stripe.CheckoutSessionLineItemParams{
+			{
 				Price:    stripe.String(checkoutRequest.PriceId),
 				Quantity: stripe.Int64(1),
 			},
