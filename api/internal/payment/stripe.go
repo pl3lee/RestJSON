@@ -55,3 +55,7 @@ func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId str
 	return subData
 }
 
+// TODO: GetSubscriptionStatus
+// retrives subscription status for customer
+// first checks KV, if not found, trigger sync from stripe and check redis again
+// if still not found, then no active subscription

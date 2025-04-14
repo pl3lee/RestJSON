@@ -25,7 +25,7 @@ export function SubscriptionsManager() {
         return <Skeleton className="h-2 w-5" />;
     }
     return (
-        <div>
+        <div className="container mx-auto py-10">
             {plans.map((plan) => (
                 <Button
                     key={plan.name}
