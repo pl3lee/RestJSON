@@ -39,6 +39,7 @@ type appConfig struct {
 	s3Client            *s3.Client
 	rdb                 *redis.Client
 	fileLimit           int
+	stripeSecretKey     string
 	stripeWebhookSecret string
 }
 
@@ -94,6 +95,10 @@ func loadAppConfig() *appConfig {
 	if err != nil {
 		log.Fatal("file limit should be an integer")
 	}
+	stripeSecretKey := os.Getenv("STRIPE_SECRET_KEY")
+	if err != nil {
+		log.Fatal("STRIPE_SECRET_KEY not set")
+	}
 	stripeWebhookSecret := os.Getenv("STRIPE_WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("STRIPE_WEBHOOK_SECRET not set")
@@ -126,6 +131,7 @@ func loadAppConfig() *appConfig {
 		s3Client:            client,
 		rdb:                 rdb,
 		fileLimit:           fileLimit,
+		stripeSecretKey:     stripeSecretKey,
 		stripeWebhookSecret: stripeWebhookSecret,
 	}
 	return cfg
@@ -166,6 +172,7 @@ func loadPaymentConfig(cfg *appConfig) *payment.PaymentConfig {
 		BaseURL:             cfg.baseURL,
 		ClientURL:           cfg.clientURL,
 		Rdb:                 cfg.rdb,
+		StripeSecretKey:     cfg.stripeSecretKey,
 		StripeWebhookSecret: cfg.stripeWebhookSecret,
 	}
 	return paymentConfig
@@ -240,8 +247,8 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 		r.Post("/jsonfiles", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
 
-		r.Get("/subscriptions/checkout", paymentConfig.HandlerCheckout)
-		r.Get("/subscriptions/success", paymentConfig.HandlerSuccess)
+		r.Post("/subscriptions/checkout", paymentConfig.HandlerCheckout)
+		r.Post("/subscriptions/success", paymentConfig.HandlerSuccess)
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)

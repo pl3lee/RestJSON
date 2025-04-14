@@ -10,5 +10,6 @@ type PaymentConfig struct {
 	BaseURL             string
 	ClientURL           string
 	Rdb                 *redis.Client
+	StripeSecretKey     string
 	StripeWebhookSecret string
 }

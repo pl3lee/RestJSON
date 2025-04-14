@@ -19,6 +19,10 @@ type checkoutParams struct {
 	PriceId string `json:"priceId"`
 }
 
+type checkoutResponse struct {
+	CheckoutUrl string `json:"checkoutUrl"`
+}
+
 func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 	var checkoutRequest checkoutParams
@@ -32,6 +36,7 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user from database", err)
 		return
 	}
+	stripe.Key = cfg.StripeSecretKey
 	stripeCustomerId := user.StripeCustomerID
 
 	// customer does not exist, create it in stripe
@@ -77,6 +82,8 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to create stripe checkout session", err)
 		return
 	}
+
+	utils.RespondWithJSON(w, http.StatusOK, checkoutResponse{CheckoutUrl: s.URL})
 	http.Redirect(w, r, s.URL, http.StatusSeeOther)
 }
 
@@ -88,6 +95,7 @@ func (cfg *PaymentConfig) HandlerSuccess(w http.ResponseWriter, r *http.Request)
 		utils.RespondWithError(w, http.StatusUnauthorized, "cannot get user", err)
 		return
 	}
+	stripe.Key = cfg.StripeSecretKey
 	stripeCustomerId := user.StripeCustomerID
 	if stripeCustomerId == "" {
 		utils.RespondWithError(w, http.StatusUnauthorized, "cannot find customer id", err)
