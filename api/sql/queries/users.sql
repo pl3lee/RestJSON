@@ -29,3 +29,9 @@ RETURNING *;
 SELECT *
 FROM users
 WHERE stripe_customer_id=$1;
+
+-- name: UpdateCustomerSubscriptionStatus :one
+UPDATE users
+SET subscribed=$2, updated_at=NOW()
+WHERE stripe_customer_id=$1
+RETURNING *;

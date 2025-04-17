@@ -103,6 +103,8 @@ func (cfg *PaymentConfig) HandlerSuccess(w http.ResponseWriter, r *http.Request)
 	}
 
 	subscriptionData := cfg.syncStripeDataToKV(r.Context(), stripeCustomerId)
+	// TODO: update database subscription data for customer
+
 	utils.RespondWithJSON(w, http.StatusOK, subscriptionData)
 }
 

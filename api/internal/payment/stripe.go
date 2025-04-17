@@ -2,8 +2,11 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/pl3lee/restjson/internal/database"
+	"github.com/redis/go-redis/v9"
 	"github.com/stripe/stripe-go/v82"
 	"github.com/stripe/stripe-go/v82/subscription"
 )
@@ -59,3 +62,37 @@ func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId str
 // retrives subscription status for customer
 // first checks KV, if not found, trigger sync from stripe and check redis again
 // if still not found, then no active subscription
+func (cfg *PaymentConfig) GetSubscriptionStatus(ctx context.Context, customerId string) (subscriptionData, error) {
+	cacheKey := fmt.Sprintf("stripe:customer:%s", customerId)
+	var subData subscriptionData
+
+	// 1. Check cache
+	cachedResult, err := cfg.Rdb.Get(ctx, cacheKey).Result()
+	if err == nil {
+		// Cache hit - attempt to unmarshal
+		if err := json.Unmarshal([]byte(cachedResult), &subData); err == nil {
+			return subData, nil // Successfully retrieved from cache
+		}
+		// Log unmarshal error and proceed to fetch
+		fmt.Printf("GetSubscriptionStatus: Failed to unmarshal cached data for customer %s: %v\n", customerId, err)
+	} else if err != redis.Nil {
+		// Log Redis error (other than cache miss) and proceed to fetch
+		fmt.Printf("GetSubscriptionStatus: Redis error for customer %s: %v\n", customerId, err)
+	}
+
+	// 2. Cache miss or error - sync from Stripe and update cache
+	subData = cfg.syncStripeDataToKV(ctx, customerId) // This function already updates the cache
+
+	return subData, nil
+}
+
+func (cfg *PaymentConfig) UpdateSubscriptionStatus(ctx context.Context, customerId string, subscribed bool) (database.User, error) {
+	updatedCustomer, err := cfg.Db.UpdateCustomerSubscriptionStatus(ctx, database.UpdateCustomerSubscriptionStatusParams{
+		StripeCustomerID: customerId,
+		Subscribed:       subscribed,
+	})
+	if err != nil {
+		return database.User{}, fmt.Errorf("UpdateSubscriptionStatus: cannot update subscription status in database: %w", err)
+	}
+	return updatedCustomer, nil
+}
