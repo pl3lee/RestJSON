@@ -10,6 +10,7 @@ import { App } from "./pages/App.tsx";
 import { Auth } from "./pages/Auth.tsx";
 import { JsonFile } from "./pages/JsonFile.tsx";
 import { Landing } from "./pages/Landing.tsx";
+import { Success } from "./pages/Success.tsx";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ createRoot(document.getElementById("root")!).render(
                                 element={<JsonFile />}
                             />
                             <Route path="account" element={<Account />} />
+                            <Route path="success" element={<Success />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>
