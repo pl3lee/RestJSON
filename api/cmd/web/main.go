@@ -20,24 +20,28 @@ import (
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/jsonfile"
+	"github.com/pl3lee/restjson/internal/payment"
 	"github.com/pl3lee/restjson/internal/ratelimit"
 	"github.com/pl3lee/restjson/internal/utils"
 	"github.com/redis/go-redis/v9"
 )
 
 type appConfig struct {
-	port               string
-	clientURL          string
-	dbUrl              string
-	baseURL            string
-	googleClientID     string
-	googleClientSecret string
-	db                 *database.Queries
-	s3Bucket           string
-	s3Region           string
-	s3Client           *s3.Client
-	rdb                *redis.Client
-	fileLimit          int
+	port                string
+	clientURL           string
+	dbUrl               string
+	baseURL             string
+	googleClientID      string
+	googleClientSecret  string
+	db                  *database.Queries
+	s3Bucket            string
+	s3Region            string
+	s3Client            *s3.Client
+	rdb                 *redis.Client
+	freeFileLimit       int
+	proFileLimit        int
+	stripeSecretKey     string
+	stripeWebhookSecret string
 }
 
 func loadAppConfig() *appConfig {
@@ -84,13 +88,29 @@ func loadAppConfig() *appConfig {
 	if err != nil {
 		log.Fatal("invalid redis url")
 	}
-	fileLimitStr := os.Getenv("FILE_LIMIT_PER_USER")
-	if fileLimitStr == "" {
+	freeFileLimitStr := os.Getenv("FREE_FILE_LIMIT")
+	if freeFileLimitStr == "" {
 		log.Fatal("invalid file limit")
 	}
-	fileLimit, err := strconv.Atoi(fileLimitStr)
+	freeFileLimit, err := strconv.Atoi(freeFileLimitStr)
 	if err != nil {
 		log.Fatal("file limit should be an integer")
+	}
+	proFileLimitStr := os.Getenv("PRO_FILE_LIMIT")
+	if proFileLimitStr == "" {
+		log.Fatal("invalid file limit")
+	}
+	proFileLimit, err := strconv.Atoi(proFileLimitStr)
+	if err != nil {
+		log.Fatal("file limit should be an integer")
+	}
+	stripeSecretKey := os.Getenv("STRIPE_SECRET_KEY")
+	if stripeSecretKey == "" {
+		log.Fatal("STRIPE_SECRET_KEY not set")
+	}
+	stripeWebhookSecret := os.Getenv("STRIPE_WEBHOOK_SECRET")
+	if stripeWebhookSecret == "" {
+		log.Fatal("STRIPE_WEBHOOK_SECRET not set")
 	}
 
 	awsCfg, err := config.LoadDefaultConfig(context.Background())
@@ -108,18 +128,21 @@ func loadAppConfig() *appConfig {
 	rdb := redis.NewClient(redisOpts)
 
 	cfg := &appConfig{
-		port:               port,
-		clientURL:          clientURL,
-		dbUrl:              dbUrl,
-		baseURL:            baseUrl,
-		googleClientID:     googleClientID,
-		googleClientSecret: googleClientSecret,
-		db:                 dbQueries,
-		s3Bucket:           s3Bucket,
-		s3Region:           s3Region,
-		s3Client:           client,
-		rdb:                rdb,
-		fileLimit:          fileLimit,
+		port:                port,
+		clientURL:           clientURL,
+		dbUrl:               dbUrl,
+		baseURL:             baseUrl,
+		googleClientID:      googleClientID,
+		googleClientSecret:  googleClientSecret,
+		db:                  dbQueries,
+		s3Bucket:            s3Bucket,
+		s3Region:            s3Region,
+		s3Client:            client,
+		rdb:                 rdb,
+		freeFileLimit:       freeFileLimit,
+		proFileLimit:        proFileLimit,
+		stripeSecretKey:     stripeSecretKey,
+		stripeWebhookSecret: stripeWebhookSecret,
 	}
 	return cfg
 }
@@ -141,22 +164,36 @@ func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 
 func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
 	jsonConfig := &jsonfile.JsonConfig{
-		Db:        cfg.db,
-		BaseURL:   cfg.baseURL,
-		ClientURL: cfg.clientURL,
-		S3Bucket:  cfg.s3Bucket,
-		S3Region:  cfg.s3Region,
-		S3Client:  cfg.s3Client,
-		Rdb:       cfg.rdb,
-		FileLimit: cfg.fileLimit,
+		Db:            cfg.db,
+		BaseURL:       cfg.baseURL,
+		ClientURL:     cfg.clientURL,
+		S3Bucket:      cfg.s3Bucket,
+		S3Region:      cfg.s3Region,
+		S3Client:      cfg.s3Client,
+		Rdb:           cfg.rdb,
+		FreeFileLimit: cfg.freeFileLimit,
+		ProFileLimit:  cfg.proFileLimit,
 	}
 	return jsonConfig
+}
+
+func loadPaymentConfig(cfg *appConfig) *payment.PaymentConfig {
+	paymentConfig := &payment.PaymentConfig{
+		Db:                  cfg.db,
+		BaseURL:             cfg.baseURL,
+		ClientURL:           cfg.clientURL,
+		Rdb:                 cfg.rdb,
+		StripeSecretKey:     cfg.stripeSecretKey,
+		StripeWebhookSecret: cfg.stripeWebhookSecret,
+	}
+	return paymentConfig
 }
 
 func main() {
 	appConfig := loadAppConfig()
 	authConfig := loadAuthConfig(appConfig)
 	jsonConfig := loadJsonConfig(appConfig)
+	paymentConfig := loadPaymentConfig(appConfig)
 
 	r := chi.NewRouter()
 
@@ -166,7 +203,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Mount("/", webRouter(appConfig, authConfig, jsonConfig))
+	r.Mount("/", webRouter(appConfig, authConfig, jsonConfig, paymentConfig))
 	r.Mount("/public", publicRouter(authConfig, jsonConfig))
 
 	srv := &http.Server{
@@ -186,7 +223,7 @@ func main() {
 
 }
 
-func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig) http.Handler {
+func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *jsonfile.JsonConfig, paymentConfig *payment.PaymentConfig) http.Handler {
 	r := chi.NewRouter()
 
 	corsWeb := cors.Handler(cors.Options{
@@ -204,6 +241,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 	// public routes
 	r.Get("/auth/google/login", authConfig.HandlerGoogleLogin)
 	r.Get("/auth/google/callback", authConfig.HandlerGoogleCallback)
+	r.Post("/webhooks/stripe", paymentConfig.HandlerStripeWebhook)
 
 	r.Group(func(r chi.Router) {
 		// middleware, capacity 10, refill rate 1, expiration 60 seconds
@@ -219,6 +257,11 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 
 		r.Post("/jsonfiles", jsonConfig.HandlerCreateJson)
 		r.Get("/jsonfiles", jsonConfig.HandlerGetJsonFiles)
+
+		r.Post("/subscriptions/checkout", paymentConfig.HandlerCheckout)
+		r.Post("/subscriptions/success", paymentConfig.HandlerSuccess)
+		r.Get("/subscriptions", paymentConfig.HandlerGetSubscriptionStatus)
+		r.Get("/subscriptions/manage", paymentConfig.HandlerCustomerPortal)
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)

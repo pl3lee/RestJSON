@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/s3util"
 	"github.com/pl3lee/restjson/internal/utils"
 )
 
@@ -38,13 +39,25 @@ type Route struct {
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 
+	user, err := cfg.Db.GetUserById(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user", err)
+		return
+	}
+	var fileLimit int
+	if user.Subscribed {
+		fileLimit = cfg.ProFileLimit
+	} else {
+		fileLimit = cfg.FreeFileLimit
+	}
+
 	existingJsonMetadata, err := cfg.Db.GetJsonFiles(r.Context(), userId)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error checking number of json files", err)
 		return
 	}
-	if len(existingJsonMetadata) >= cfg.FileLimit {
-		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", cfg.FileLimit), err)
+	if len(existingJsonMetadata) >= fileLimit {
+		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", fileLimit), err)
 		return
 	}
 
@@ -64,7 +77,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 	fileId := uuid.New()
 
 	emptyJson := map[string]any{}
-	err = cfg.uploadJsonToS3(r.Context(), userId, fileId, emptyJson)
+	err = s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileId, emptyJson)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading empty JSON to s3", err)
 		return
@@ -93,12 +106,12 @@ func (cfg *JsonConfig) HandlerUpdateJson(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	if err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, jsonData); err != nil {
+	if err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, jsonData); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error uploading JSON to s3", err)
 		return
 	}
 
-	fileContents, err := cfg.getJsonFromS3(r.Context(), userId, fileMetadata.ID)
+	fileContents, err := s3util.GetJsonFromS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "cannot get updated json file from s3", err)
 		return
@@ -188,7 +201,7 @@ func (cfg *JsonConfig) HandlerDeleteJsonFile(w http.ResponseWriter, r *http.Requ
 		utils.RespondWithError(w, http.StatusInternalServerError, "error deleting json file from db", err)
 		return
 	}
-	if err := cfg.deleteFileFromS3(r.Context(), userId, fileMetadata.ID); err != nil {
+	if err := s3util.DeleteFileFromS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error deleting json file from s3", err)
 		return
 	}

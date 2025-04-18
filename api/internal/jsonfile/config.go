@@ -7,12 +7,13 @@ import (
 )
 
 type JsonConfig struct {
-	Db        *database.Queries
-	BaseURL   string
-	ClientURL string
-	S3Bucket  string
-	S3Region  string
-	S3Client  *s3.Client
-	Rdb       *redis.Client
-	FileLimit int
+	Db            *database.Queries
+	BaseURL       string
+	ClientURL     string
+	S3Bucket      string
+	S3Region      string
+	S3Client      *s3.Client
+	Rdb           *redis.Client
+	FreeFileLimit int
+	ProFileLimit  int
 }

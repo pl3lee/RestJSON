@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/s3util"
 	"github.com/pl3lee/restjson/internal/utils"
 )
 
@@ -74,7 +75,7 @@ func (cfg *JsonConfig) HandlerCreateResourceItem(w http.ResponseWriter, r *http.
 	items = append(items, newResource)
 	fileContents[resource] = items
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
@@ -122,7 +123,7 @@ func (cfg *JsonConfig) HandlerUpdateResourceItem(w http.ResponseWriter, r *http.
 	}
 	fileContents[resource] = items
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
@@ -171,7 +172,7 @@ func (cfg *JsonConfig) HandlerPartialUpdateResourceItem(w http.ResponseWriter, r
 	}
 	fileContents[resource] = items
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
 		return
@@ -213,7 +214,7 @@ func (cfg *JsonConfig) HandlerDeleteResourceItem(w http.ResponseWriter, r *http.
 	}
 	fileContents[resource] = items
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
 		return
@@ -238,7 +239,7 @@ func (cfg *JsonConfig) HandlerUpdateResource(w http.ResponseWriter, r *http.Requ
 	}
 	fileContents[resource] = updatedResource
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)
@@ -272,7 +273,7 @@ func (cfg *JsonConfig) HandlerPartialUpdateResource(w http.ResponseWriter, r *ht
 
 	fileContents[resource] = existingResource
 
-	err := cfg.uploadJsonToS3(r.Context(), userId, fileMetadata.ID, fileContents)
+	err := s3util.UploadJsonToS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID, fileContents)
 
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "failed to save updated file contents to s3", err)

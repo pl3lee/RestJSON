@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pl3lee/restjson/internal/auth"
 	"github.com/pl3lee/restjson/internal/database"
+	"github.com/pl3lee/restjson/internal/s3util"
 	"github.com/pl3lee/restjson/internal/utils"
 )
 
@@ -52,7 +53,7 @@ func (cfg *JsonConfig) JsonFileContentMiddleware(next http.Handler) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 		fileMetadata := r.Context().Value(FileMetadataContextKey).(database.JsonFile)
-		fileContents, err := cfg.getJsonFromS3(r.Context(), userId, fileMetadata.ID)
+		fileContents, err := s3util.GetJsonFromS3(r.Context(), cfg.S3Client, cfg.Rdb, cfg.S3Bucket, userId, fileMetadata.ID)
 		if err != nil {
 			utils.RespondWithError(w, http.StatusInternalServerError, "error getting json from s3", err)
 			return
