@@ -22,6 +22,7 @@ import {
     DialogTrigger,
 } from "./ui/dialog";
 import { Skeleton } from "./ui/skeleton";
+import { Link } from "react-router";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 const methodColors = {
@@ -64,7 +65,13 @@ export function ApiRouteDialog({ fileId }: { fileId: string }) {
                         <Key className="h-4 w-4" />
                         <AlertTitle>API Key</AlertTitle>
                         <AlertDescription>
-                            You can get your API key in your account page
+                            <div className="flex gap-1">
+                                You can get your API key in your
+                                <Link to="/app/account" className="underline">
+                                    account
+                                </Link>
+                                page
+                            </div>
                         </AlertDescription>
                     </Alert>
 

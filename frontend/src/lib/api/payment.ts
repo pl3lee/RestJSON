@@ -58,3 +58,24 @@ export async function getSubscriptionStatus(): Promise<boolean> {
     const data: subscriptionStatusResponse = await res.json();
     return data.subscribed;
 }
+
+type billingPortalResponse = {
+    portalUrl: string;
+};
+
+export async function getBillingPortalUrl(): Promise<string> {
+    const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/subscriptions/manage`,
+        {
+            method: "GET",
+            credentials: "include",
+        },
+    );
+    if (!res.ok) {
+        const errorData = await res.json();
+        const error = errorData.error;
+        throw new Error(error);
+    }
+    const data: billingPortalResponse = await res.json();
+    return data.portalUrl;
+}

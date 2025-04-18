@@ -1,21 +1,27 @@
 import { paymentSuccessful } from "@/lib/api/payment";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 export function Success() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    // const paymentSuccessMutation = useMutation({
-    //     mutationFn: paymentSuccessful,
-    //     onSuccess: () => {
-    //         navigate("/app/account");
-    //         queryClient.invalidateQueries({
-    //             queryKey: ["subscription-status"],
-    //         });
-    //     },
-    // });
-    // paymentSuccessMutation.mutate();
+    const paymentSuccessMutation = useMutation({
+        mutationFn: paymentSuccessful,
+        onSuccess: () => {
+            navigate("/app/account");
+            queryClient.invalidateQueries({
+                queryKey: ["subscription-status"],
+            });
+        },
+    });
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: results in infinite loop
+    useEffect(() => {
+        paymentSuccessMutation.mutate();
+    }, []);
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-5 text-center">
             <title>Payment Successful - RestJSON</title>

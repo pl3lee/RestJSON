@@ -39,13 +39,25 @@ type Route struct {
 func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
 
+	user, err := cfg.Db.GetUserById(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user", err)
+		return
+	}
+	var fileLimit int
+	if user.Subscribed {
+		fileLimit = cfg.ProFileLimit
+	} else {
+		fileLimit = cfg.FreeFileLimit
+	}
+
 	existingJsonMetadata, err := cfg.Db.GetJsonFiles(r.Context(), userId)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "error checking number of json files", err)
 		return
 	}
-	if len(existingJsonMetadata) >= cfg.FileLimit {
-		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", cfg.FileLimit), err)
+	if len(existingJsonMetadata) >= fileLimit {
+		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", cfg.FreeFileLimit), err)
 		return
 	}
 

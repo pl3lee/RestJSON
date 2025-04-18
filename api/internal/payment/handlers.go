@@ -9,6 +9,7 @@ import (
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/pl3lee/restjson/internal/utils"
 	"github.com/stripe/stripe-go/v82"
+	billingportal_session "github.com/stripe/stripe-go/v82/billingportal/session"
 	"github.com/stripe/stripe-go/v82/checkout/session"
 	"github.com/stripe/stripe-go/v82/customer"
 	"github.com/stripe/stripe-go/v82/webhook"
@@ -189,4 +190,37 @@ func (cfg *PaymentConfig) HandlerStripeWebhook(w http.ResponseWriter, r *http.Re
 	isSubscribed := subscriptionData.Status == string(stripe.SubscriptionStatusActive)
 	_, err = cfg.UpdateSubscriptionStatus(r.Context(), customerId, isSubscribed)
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+}
+
+type customerPortalResponse struct {
+	PortalUrl string `json:"portalUrl"`
+}
+
+func (cfg *PaymentConfig) HandlerCustomerPortal(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+
+	user, err := cfg.Db.GetUserById(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user from database", err)
+		return
+	}
+
+	if user.StripeCustomerID == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "user does not have a stripe customer id", nil)
+		return
+	}
+
+	stripe.Key = cfg.StripeSecretKey
+
+	params := &stripe.BillingPortalSessionParams{
+		Customer:  stripe.String(user.StripeCustomerID),
+		ReturnURL: stripe.String(cfg.ClientURL + "/app/account"), // Redirect back to account page
+	}
+	portalSession, err := billingportal_session.New(params)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "failed to create stripe customer portal session", err)
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, customerPortalResponse{PortalUrl: portalSession.URL})
 }

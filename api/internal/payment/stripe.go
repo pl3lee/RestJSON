@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/pl3lee/restjson/internal/database"
 	"github.com/redis/go-redis/v9"
@@ -26,7 +27,8 @@ type subscriptionData struct {
 }
 
 func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId string) subscriptionData {
-	result := subscription.List(&stripe.SubscriptionListParams{
+	var result []*stripe.Subscription = []*stripe.Subscription{}
+	result = subscription.List(&stripe.SubscriptionListParams{
 		Customer: stripe.String(customerId),
 		Status:   stripe.String("all"),
 		ListParams: stripe.ListParams{
@@ -44,17 +46,38 @@ func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId str
 	subscription := result[0]
 
 	subData := subscriptionData{
-		SubscriptionId:     subscription.ID,
-		Status:             string(subscription.Status),
-		PriceId:            subscription.Items.Data[0].Price.ID,
-		CurrentPeriodStart: int(subscription.Items.Data[0].CurrentPeriodStart),
-		CurrentPeriodEnd:   int(subscription.Items.Data[0].CurrentPeriodEnd),
-		PaymentMethod: paymentMethod{
+		SubscriptionId: subscription.ID,
+		Status:         string(subscription.Status),
+	}
+
+	// Safely access subscription item data
+	if subscription.Items != nil && len(subscription.Items.Data) > 0 {
+		item := subscription.Items.Data[0]
+		if item != nil {
+			subData.CurrentPeriodStart = int(item.CurrentPeriodStart)
+			subData.CurrentPeriodEnd = int(item.CurrentPeriodEnd)
+			if item.Price != nil {
+				subData.PriceId = item.Price.ID
+			}
+		}
+	}
+
+	// Safely access default payment method data
+	if subscription.DefaultPaymentMethod != nil && subscription.DefaultPaymentMethod.Card != nil {
+		subData.PaymentMethod = paymentMethod{
 			Brand: string(subscription.DefaultPaymentMethod.Card.Brand),
 			Last4: subscription.DefaultPaymentMethod.Card.Last4,
-		},
+		}
 	}
-	cfg.Rdb.Set(ctx, fmt.Sprintf("stripe:customer:%s", customerId), subData, 0)
+	fmt.Print(subData)
+	jsonData, err := json.Marshal(subData)
+	if err != nil {
+		log.Printf("syncStripeDataToKV: error marshalling subData to JSON: %v\n", err)
+	}
+	err = cfg.Rdb.Set(ctx, fmt.Sprintf("stripe:customer:%s", customerId), jsonData, 0).Err()
+	if err != nil {
+		log.Printf("syncStripeDataToKV: error in saving jsonData to redis: %v\n", err)
+	}
 	return subData
 }
 

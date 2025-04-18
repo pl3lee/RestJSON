@@ -38,7 +38,8 @@ type appConfig struct {
 	s3Region            string
 	s3Client            *s3.Client
 	rdb                 *redis.Client
-	fileLimit           int
+	freeFileLimit       int
+	proFileLimit        int
 	stripeSecretKey     string
 	stripeWebhookSecret string
 }
@@ -87,11 +88,19 @@ func loadAppConfig() *appConfig {
 	if err != nil {
 		log.Fatal("invalid redis url")
 	}
-	fileLimitStr := os.Getenv("FILE_LIMIT_PER_USER")
-	if fileLimitStr == "" {
+	freeFileLimitStr := os.Getenv("FREE_FILE_LIMIT")
+	if freeFileLimitStr == "" {
 		log.Fatal("invalid file limit")
 	}
-	fileLimit, err := strconv.Atoi(fileLimitStr)
+	freeFileLimit, err := strconv.Atoi(freeFileLimitStr)
+	if err != nil {
+		log.Fatal("file limit should be an integer")
+	}
+	proFileLimitStr := os.Getenv("PRO_FILE_LIMIT")
+	if proFileLimitStr == "" {
+		log.Fatal("invalid file limit")
+	}
+	proFileLimit, err := strconv.Atoi(proFileLimitStr)
 	if err != nil {
 		log.Fatal("file limit should be an integer")
 	}
@@ -130,7 +139,8 @@ func loadAppConfig() *appConfig {
 		s3Region:            s3Region,
 		s3Client:            client,
 		rdb:                 rdb,
-		fileLimit:           fileLimit,
+		freeFileLimit:       freeFileLimit,
+		proFileLimit:        proFileLimit,
 		stripeSecretKey:     stripeSecretKey,
 		stripeWebhookSecret: stripeWebhookSecret,
 	}
@@ -154,14 +164,15 @@ func loadAuthConfig(cfg *appConfig) *auth.AuthConfig {
 
 func loadJsonConfig(cfg *appConfig) *jsonfile.JsonConfig {
 	jsonConfig := &jsonfile.JsonConfig{
-		Db:        cfg.db,
-		BaseURL:   cfg.baseURL,
-		ClientURL: cfg.clientURL,
-		S3Bucket:  cfg.s3Bucket,
-		S3Region:  cfg.s3Region,
-		S3Client:  cfg.s3Client,
-		Rdb:       cfg.rdb,
-		FileLimit: cfg.fileLimit,
+		Db:            cfg.db,
+		BaseURL:       cfg.baseURL,
+		ClientURL:     cfg.clientURL,
+		S3Bucket:      cfg.s3Bucket,
+		S3Region:      cfg.s3Region,
+		S3Client:      cfg.s3Client,
+		Rdb:           cfg.rdb,
+		FreeFileLimit: cfg.freeFileLimit,
+		ProFileLimit:  cfg.proFileLimit,
 	}
 	return jsonConfig
 }
@@ -250,6 +261,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 		r.Post("/subscriptions/checkout", paymentConfig.HandlerCheckout)
 		r.Post("/subscriptions/success", paymentConfig.HandlerSuccess)
 		r.Get("/subscriptions", paymentConfig.HandlerGetSubscriptionStatus)
+		r.Get("/subscriptions/manage", paymentConfig.HandlerCustomerPortal)
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)
