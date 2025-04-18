@@ -106,6 +106,10 @@ func (cfg *PaymentConfig) HandlerSuccess(w http.ResponseWriter, r *http.Request)
 	// only status active is considered subscribed
 	isSubscribed := subscriptionData.Status == string(stripe.SubscriptionStatusActive)
 	_, err = cfg.UpdateSubscriptionStatus(r.Context(), stripeCustomerId, isSubscribed)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot update subscription status in database", err)
+		return
+	}
 
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
@@ -188,6 +192,10 @@ func (cfg *PaymentConfig) HandlerStripeWebhook(w http.ResponseWriter, r *http.Re
 	subscriptionData := cfg.syncStripeDataToKV(r.Context(), customerId)
 	isSubscribed := subscriptionData.Status == string(stripe.SubscriptionStatusActive)
 	_, err = cfg.UpdateSubscriptionStatus(r.Context(), customerId, isSubscribed)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "cannot update subscription status in database", err)
+		return
+	}
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
