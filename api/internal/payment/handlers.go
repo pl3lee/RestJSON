@@ -1,7 +1,6 @@
 package payment
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -103,9 +102,29 @@ func (cfg *PaymentConfig) HandlerSuccess(w http.ResponseWriter, r *http.Request)
 	}
 
 	subscriptionData := cfg.syncStripeDataToKV(r.Context(), stripeCustomerId)
-	// TODO: update database subscription data for customer
+	// update database subscription data for customer
+	// only status active is considered subscribed
+	isSubscribed := subscriptionData.Status == string(stripe.SubscriptionStatusActive)
+	_, err = cfg.UpdateSubscriptionStatus(r.Context(), stripeCustomerId, isSubscribed)
 
-	utils.RespondWithJSON(w, http.StatusOK, subscriptionData)
+	utils.RespondWithJSON(w, http.StatusNoContent, nil)
+}
+
+type getSubscriptionStatusResponse struct {
+	Subscribed bool `json:"subscribed"`
+}
+
+func (cfg *PaymentConfig) HandlerGetSubscriptionStatus(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(auth.UserIDContextKey).(uuid.UUID)
+
+	user, err := cfg.Db.GetUserById(r.Context(), userId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "error getting user from database", err)
+		return
+	}
+	utils.RespondWithJSON(w, http.StatusOK, getSubscriptionStatusResponse{
+		Subscribed: user.Subscribed,
+	})
 }
 
 var allowedEvents map[stripe.EventType]bool = map[stripe.EventType]bool{
@@ -167,6 +186,7 @@ func (cfg *PaymentConfig) HandlerStripeWebhook(w http.ResponseWriter, r *http.Re
 	}
 
 	subscriptionData := cfg.syncStripeDataToKV(r.Context(), customerId)
-	fmt.Printf("got subscription data: %v", subscriptionData)
+	isSubscribed := subscriptionData.Status == string(stripe.SubscriptionStatusActive)
+	_, err = cfg.UpdateSubscriptionStatus(r.Context(), customerId, isSubscribed)
 	utils.RespondWithJSON(w, http.StatusNoContent, nil)
 }

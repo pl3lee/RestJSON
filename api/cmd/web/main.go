@@ -249,6 +249,7 @@ func webRouter(appConfig *appConfig, authConfig *auth.AuthConfig, jsonConfig *js
 
 		r.Post("/subscriptions/checkout", paymentConfig.HandlerCheckout)
 		r.Post("/subscriptions/success", paymentConfig.HandlerSuccess)
+		r.Get("/subscriptions", paymentConfig.HandlerGetSubscriptionStatus)
 
 		r.Group(func(r chi.Router) {
 			r.Use(jsonConfig.JsonFileMiddleware)

@@ -58,32 +58,24 @@ func (cfg *PaymentConfig) syncStripeDataToKV(ctx context.Context, customerId str
 	return subData
 }
 
-// TODO: GetSubscriptionStatus
-// retrives subscription status for customer
-// first checks KV, if not found, trigger sync from stripe and check redis again
-// if still not found, then no active subscription
-func (cfg *PaymentConfig) GetSubscriptionStatus(ctx context.Context, customerId string) (subscriptionData, error) {
+// TODO: GetSubscriptionStatusFromKV
+// retrives subscription status for customer in redis
+func (cfg *PaymentConfig) GetSubscriptionStatusFromKV(ctx context.Context, customerId string) (subscriptionData, bool, error) {
 	cacheKey := fmt.Sprintf("stripe:customer:%s", customerId)
 	var subData subscriptionData
 
-	// 1. Check cache
 	cachedResult, err := cfg.Rdb.Get(ctx, cacheKey).Result()
 	if err == nil {
 		// Cache hit - attempt to unmarshal
 		if err := json.Unmarshal([]byte(cachedResult), &subData); err == nil {
-			return subData, nil // Successfully retrieved from cache
+			return subData, true, nil // Successfully retrieved from cache
 		}
-		// Log unmarshal error and proceed to fetch
-		fmt.Printf("GetSubscriptionStatus: Failed to unmarshal cached data for customer %s: %v\n", customerId, err)
+		return subData, false, fmt.Errorf("GetSubscriptionStatusFromKV: error in unmarshalling data %w", err)
 	} else if err != redis.Nil {
-		// Log Redis error (other than cache miss) and proceed to fetch
-		fmt.Printf("GetSubscriptionStatus: Redis error for customer %s: %v\n", customerId, err)
+		return subData, false, fmt.Errorf("GetSubscriptionStatusFromKV: redis error for customer: %v", err)
+	} else {
+		return subData, false, fmt.Errorf("GetSubscriptionStatusFromKV: not in KV: %v", err)
 	}
-
-	// 2. Cache miss or error - sync from Stripe and update cache
-	subData = cfg.syncStripeDataToKV(ctx, customerId) // This function already updates the cache
-
-	return subData, nil
 }
 
 func (cfg *PaymentConfig) UpdateSubscriptionStatus(ctx context.Context, customerId string, subscribed bool) (database.User, error) {
