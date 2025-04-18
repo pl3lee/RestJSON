@@ -1,5 +1,5 @@
 import { paymentSuccessful } from "@/lib/api/payment";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";

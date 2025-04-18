@@ -1,11 +1,13 @@
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 import {
     checkout,
     getBillingPortalUrl,
     getSubscriptionStatus,
 } from "@/lib/api/payment";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { CheckCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import {
     Card,
     CardContent,
@@ -14,10 +16,7 @@ import {
     CardHeader,
     CardTitle,
 } from "./ui/card";
-import { Link } from "react-router";
-import { CheckCircle } from "lucide-react";
-import { Badge } from "./ui/badge";
-import { toast } from "sonner";
+import { Skeleton } from "./ui/skeleton";
 
 export const plans = {
     Monthly: {

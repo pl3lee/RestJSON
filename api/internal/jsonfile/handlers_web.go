@@ -57,7 +57,7 @@ func (cfg *JsonConfig) HandlerCreateJson(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if len(existingJsonMetadata) >= fileLimit {
-		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", cfg.FreeFileLimit), err)
+		utils.RespondWithError(w, http.StatusForbidden, fmt.Sprintf("json file limit of %d exceeded", fileLimit), err)
 		return
 	}
 

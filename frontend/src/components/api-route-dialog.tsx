@@ -3,6 +3,7 @@ import type { Route } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Code, Key } from "lucide-react";
+import { Link } from "react-router";
 import CodeBlock from "./code-block";
 import {
     Accordion,
@@ -22,7 +23,6 @@ import {
     DialogTrigger,
 } from "./ui/dialog";
 import { Skeleton } from "./ui/skeleton";
-import { Link } from "react-router";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 const methodColors = {

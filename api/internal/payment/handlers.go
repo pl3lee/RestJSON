@@ -84,7 +84,6 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, checkoutResponse{CheckoutUrl: s.URL})
-	http.Redirect(w, r, s.URL, http.StatusSeeOther)
 }
 
 // called from frontend /success page

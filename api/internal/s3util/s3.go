@@ -28,7 +28,7 @@ func getFileFromS3(ctx context.Context, client *s3.Client, bucket string, userId
 	defer result.Body.Close()
 	body, err := io.ReadAll(result.Body)
 	if err != nil {
-		return nil, fmt.Errorf("getFileFromS3: error reading ojbect body: %w", err)
+		return nil, fmt.Errorf("getFileFromS3: error reading object body: %w", err)
 	}
 
 	return body, nil
