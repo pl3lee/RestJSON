@@ -124,7 +124,7 @@ func DeleteFileFromS3(ctx context.Context, client *s3.Client, rdb *redis.Client,
 	}
 	_, err := client.DeleteObject(ctx, s3Params)
 	if err != nil {
-		return fmt.Errorf("deleteFileFromS3: error deleting object frmo S3: %w", err)
+		return fmt.Errorf("deleteFileFromS3: error deleting object from S3: %w", err)
 	}
 
 	// delete from cache
