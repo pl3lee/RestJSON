@@ -73,8 +73,9 @@ func (cfg *PaymentConfig) HandlerCheckout(w http.ResponseWriter, r *http.Request
 				Quantity: stripe.Int64(1),
 			},
 		},
-		SuccessURL: stripe.String(cfg.ClientURL + "/app/success"),
-		CancelURL:  stripe.String(cfg.ClientURL + "/app/account"),
+		SuccessURL:          stripe.String(cfg.ClientURL + "/app/success"),
+		CancelURL:           stripe.String(cfg.ClientURL + "/app/account"),
+		AllowPromotionCodes: stripe.Bool(true),
 	}
 
 	s, err := session.New(checkoutParams)
