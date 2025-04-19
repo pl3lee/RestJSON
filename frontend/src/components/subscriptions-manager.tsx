@@ -22,13 +22,13 @@ export const plans = {
     Monthly: {
         priceId: import.meta.env.VITE_BASE_URL.includes("localhost")
             ? "price_1R9FuqDGza3FJhYO6DtchdQh"
-            : "",
+            : "price_1RFQKnDGza3FJhYO3FDfmru1",
         price: 5,
     },
     Yearly: {
         priceId: import.meta.env.VITE_BASE_URL.includes("localhost")
             ? "price_1R9FwkDGza3FJhYOjdukqxiO"
-            : "",
+            : "price_1RFQL0DGza3FJhYODepF1BsL",
         price: 30,
     },
 };
